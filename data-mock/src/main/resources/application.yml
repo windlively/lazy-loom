@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/data_flow_mock_src
+    username: root
+    password: 58603924715
+management:
+  endpoint:
+    health:
+      show-details: always
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  server:
+    port: ${server.port}
+    servlet:
+      context-path: ${server.servlet.context-path}
+server:
+  port: 10088
+  servlet:
+    context-path: /data-mock

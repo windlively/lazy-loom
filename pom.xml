@@ -17,6 +17,7 @@
         <module>file-server</module>
         <module>scripts</module>
         <module>ex-spark-streaming</module>
+        <module>data-mock</module>
     </modules>
     <build>
         <plugins>
