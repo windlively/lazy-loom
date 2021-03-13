@@ -4,7 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 
-public class Asserts {
+public class Assert {
 
     public static void notNull(Object obj, String message) {
         if (obj == null)

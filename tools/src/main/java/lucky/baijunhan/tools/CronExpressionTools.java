@@ -31,7 +31,7 @@ public class CronExpressionTools {
     public static final Pattern TRIGGER_CONFIG_FOR_WEEKLY_PATTERN = Pattern.compile("周[一二三四五六日]" + TRIGGER_CONFIG_FOR_DAILY_PATTERN);
 
     public static String triggerConfigToCronExpression(String triggerConfig) {
-        Asserts.isTrue(StringUtils.isNotEmpty(triggerConfig), "trigger config is empty");
+        Assert.isTrue(StringUtils.isNotEmpty(triggerConfig), "trigger config is empty");
         String[] split = triggerConfig.split("/");
         String first = split[0];
         String time = split[1];
@@ -39,7 +39,7 @@ public class CronExpressionTools {
         switch (first) {
             case "每年": {
                 s = "$4 $3 $2 $1 $0 ? *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_YEARLY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_YEARLY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_YEARLY_PATTERN);
 
                 if(time.contains("月末")){
@@ -52,7 +52,7 @@ public class CronExpressionTools {
             }
             case "每月": {
                 s = "$3 $2 $1 $0 * ? *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_MONTHLY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_MONTHLY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_MONTHLY_PATTERN);
 
                 if(time.startsWith("月末")){
@@ -65,7 +65,7 @@ public class CronExpressionTools {
             }
             case "每周": {
                 s = "$2 $1 $0 ? * $week *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_WEEKLY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_WEEKLY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_MONTHLY_PATTERN);
                 s = s.replace("$week", "" + getWeakFromChinese(time.substring(0, 2)));
                 time = time.substring(2);
@@ -74,21 +74,21 @@ public class CronExpressionTools {
             }
             case "每日": {
                 s = "$2 $1 $0 * * ? *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_DAILY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_DAILY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_DAILY_PATTERN);
                 s = setCronParam(time, s);
                 break;
             }
             case "每时": {
                 s = "$1 $0 * * * ? *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_HOURLY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_HOURLY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_HOURLY_PATTERN);
                 s = setCronParam(time, s);
                 break;
             }
             case "每分": {
                 s = "$0 * * * * ? *";
-                Asserts.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_MINUTELY_PATTERN.pattern() + "$"),
+                Assert.isTrue(time.matches("^" + TRIGGER_CONFIG_FOR_MINUTELY_PATTERN.pattern() + "$"),
                         "trigger config " + time + ", not match pattern: " + TRIGGER_CONFIG_FOR_MINUTELY_PATTERN);
                 s = setCronParam(time, s);
                 break;
