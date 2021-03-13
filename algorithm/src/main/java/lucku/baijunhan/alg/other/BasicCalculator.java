@@ -42,43 +42,62 @@ public class BasicCalculator {
             return calculate(s.toCharArray(), 0, s.length() - 1);
         }
 
+        /**
+         * 计算子表达式
+         * @param cs 字符串序列
+         * @param l 子表达式起始位置
+         * @param r 子表达式结束为止
+         * @return 子表达式的结果
+         */
         public int calculate(char[] cs, int l, int r) {
             int sum = 0;
+            // 符号标志，初始认为是正号
             boolean positive = true;
             int i = l;
             while (i <= r) {
-                if (cs[i] == ' '){
-                    i ++;
+                // 跳过空格
+                if (cs[i] == ' ') {
+                    i++;
                     continue;
                 }
+                // 如果是操作符，判断正负号
                 if (isOperator(cs[i])) {
                     positive = cs[i++] == '+';
                     continue;
-                };
+                }
+                ;
+                // 如果是数字，获取数字的值
                 if (isDigit(cs[i])) {
                     int nStart = i;
-                    while (i <= r && isDigit(cs[i])) i ++;
+                    while (i <= r && isDigit(cs[i])) i++;
+                    // 根据符号判断是加还是减
                     if (positive)
                         sum += toInt(cs, nStart, i - 1);
                     else
                         sum -= toInt(cs, nStart, i - 1);
                     continue;
                 }
+                // 如果遇到左括号，认为是一个子表达式，获取子表达式的位置
                 if (cs[i] == '(') {
+                    // 左括号的个数
                     int k = 1;
+                    // 记录子表达式的起始位置
                     int cStart = ++i;
                     while (k > 0) {
+                        // 遇到左括号，括号数加一
                         if (cs[i] == '(') k++;
+                        // 遇到右括号，括号数减一，相当于"抵消"一个左括号
                         if (cs[i] == ')') k--;
-                        i ++;
+                        i++;
                     }
-                    if(positive)
+                    // 计算子表达式的值，并根据符号判断是加还是减，由于此时i的位置
+                    // 是右括号+1的位置，所以子表达式结束位置为i-2
+                    if (positive)
                         sum += calculate(cs, cStart, i - 2);
                     else
                         sum -= calculate(cs, cStart, i - 2);
                 }
             }
-            // System.out.println(new String(Arrays.copyOfRange(cs, l, r + 1)) + " = " + sum);
             return sum;
         }
 
