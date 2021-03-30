@@ -6,6 +6,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,6 +129,10 @@ public class SQLGenerator {
             strVal = "'" + javaValue + "'";
         else if (javaValue instanceof Date)
             strVal = "'" + new DateTime(javaValue).toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+        else if (javaValue instanceof LocalDateTime)
+            strVal = "'" + ((LocalDateTime) javaValue).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+        else if (javaValue instanceof LocalDate)
+            strVal = "'" + ((LocalDate) javaValue).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "'";
         else
             strVal = javaValue == null ? "null" : javaValue.toString();
 
