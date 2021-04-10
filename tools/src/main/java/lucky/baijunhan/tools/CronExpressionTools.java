@@ -118,11 +118,8 @@ public class CronExpressionTools {
 
 
     public static void main(String[] args) {
-        // String s = "每年/2月月末22时9分10秒";
-        if(args.length == 0) {
-            System.err.println("请输入参数");
-            return;
-        }
-        System.out.println(triggerConfigToCronExpression(args[0]));
+        String i = "10 9 22 L 2 *";
+         String s = "每年/2月月末22时9分10秒";
+        System.out.println(triggerConfigToCronExpression(s));
     }
 }
