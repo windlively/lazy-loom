@@ -43,6 +43,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-logging</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.dreamroute</groupId>
+            <artifactId>hikari-spring-boot-starter</artifactId>
+            <version>1.4-RELEASE</version>
+        </dependency>
     </dependencies>
 
     <build>
