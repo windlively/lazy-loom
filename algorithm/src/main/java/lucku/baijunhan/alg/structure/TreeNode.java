@@ -10,4 +10,6 @@ public class TreeNode {
     public TreeNode(int x) {
         val = x;
     }
+
+    public TreeNode(){}
 }

@@ -1,6 +1,7 @@
 package lucku.baijunhan.alg.sort;
 
 import java.util.Arrays;
+import java.util.concurrent.CyclicBarrier;
 
 public class HeapSort implements IntSort {
 
