@@ -22,6 +22,15 @@ public class SortTest {
         System.out.println(Arrays.toString(nums));
     }
 
+    public static void buildHead(int[] arr, int i, int size){
+        int left = i * 2 + 1;
+        int right = i * 2 + 2;
+        int greaterIndex = i;
+        if(left < size && arr[left] > arr[greaterIndex]){
+
+        }
+    }
+
 
 
 
