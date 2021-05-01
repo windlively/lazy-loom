@@ -54,6 +54,12 @@
             <artifactId>hikari-spring-boot-starter</artifactId>
             <version>1.4-RELEASE</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.rocksdb</groupId>
+            <artifactId>rocksdbjni</artifactId>
+            <version>5.9.2</version>
+        </dependency>
     </dependencies>
 
     <build>
