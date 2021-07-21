@@ -15,6 +15,7 @@ import org.springframework.util.Assert;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -193,7 +194,7 @@ public class GeneralTools {
      * @param dest       要转换的对象
      * @param forceCover 当dest对象字段不为空时, 是否强行覆盖
      */
-    public static <SRC, DEST> void copyFields(SRC source, DEST dest, boolean forceCover) {
+    public static <SRC, DEST> DEST copyFields(SRC source, DEST dest, boolean forceCover) {
         Class<?> destClass = dest.getClass();
         Class<?> sourceClass = source.getClass();
         // 仅处理当前对象的字段, 不处理继承的字段
@@ -214,6 +215,15 @@ public class GeneralTools {
                 }
             }
         });
+        return dest;
+    }
+
+    public static <SRC, DEST> DEST createFromExistedObject(SRC source, Class<DEST> destClass){
+        try {
+            return copyFields(source, destClass.getConstructor().newInstance(), true);
+        } catch (InstantiationException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
