@@ -1,10 +1,14 @@
-package lucky.baijunhan.datamock.tools;
+package ink.windlively.tools;
 
-import ink.windlively.tools.GeneralTools;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -37,7 +41,7 @@ public class SQLGenerator {
             if (value == null) continue;
             columnName.add(field);
             columnValue.add(customValue != null ?
-                    customValue : GeneralTools.javaValToSqlVal(value));
+                    customValue : javaValToSqlVal(value));
         }
         SQL.append("(").append(String.join(",", columnName)).append(")");
         SQL.append(" VALUES ");
@@ -67,7 +71,7 @@ public class SQLGenerator {
             Object value = e.getValue();
             String customValue = customFields.get(field);
             if (value == null) continue;
-            setItem.add(field + "=" + (customValue == null ? GeneralTools.javaValToSqlVal(value) : value));
+            setItem.add(field + "=" + (customValue == null ? javaValToSqlVal(value) : value));
         }
         SQL.append(String.join(",", setItem));
         SQL.append(" WHERE ");
@@ -113,9 +117,26 @@ public class SQLGenerator {
 
     private static String genWhereCondition(List<String> matchFields, Map<String, Object> data) {
         return matchFields.stream()
-                .map(f -> f + "=" + GeneralTools.javaValToSqlVal(
+                .map(f -> f + "=" + javaValToSqlVal(
                         Objects.requireNonNull(data.get(f), "field " + f + " in where case value is null"))
                 ).collect(Collectors.joining(" AND "));
+    }
+
+    public static String javaValToSqlVal(Object javaValue) {
+        String strVal;
+
+        if (javaValue instanceof String)
+            strVal = "'" + javaValue + "'";
+        else if (javaValue instanceof Date)
+            strVal = "'" + new DateTime(javaValue).toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+        else if (javaValue instanceof LocalDateTime)
+            strVal = "'" + ((LocalDateTime) javaValue).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+        else if (javaValue instanceof LocalDate)
+            strVal = "'" + ((LocalDate) javaValue).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "'";
+        else
+            strVal = javaValue == null ? "null" : javaValue.toString();
+
+        return strVal;
     }
 
 }
