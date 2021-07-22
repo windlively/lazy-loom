@@ -1,9 +1,9 @@
-package lucky.baijunhan.datamock;
+package ink.windlively.datamock;
 
+import ink.windlively.datamock.tools.DaoTools;
 import lombok.extern.slf4j.Slf4j;
-import lucky.baijunhan.datamock.tools.DaoTools;
-import lucky.baijunhan.datamock.tools.RandomDataGenerator;
-import lucky.baijunhan.datamock.tools.SQLGenerator;
+import ink.windlively.datamock.tools.RandomDataGenerator;
+import ink.windlively.datamock.tools.SQLGenerator;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;

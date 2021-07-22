@@ -1,9 +1,9 @@
-package lucky.baijunhan.datamock;
+package ink.windlively.datamock;
 
 import lombok.extern.slf4j.Slf4j;
-import lucky.baijunhan.datamock.tools.DaoTools;
-import lucky.baijunhan.datamock.tools.RandomDataGenerator;
-import lucky.baijunhan.datamock.tools.SQLGenerator;
+import ink.windlively.datamock.tools.DaoTools;
+import ink.windlively.datamock.tools.RandomDataGenerator;
+import ink.windlively.datamock.tools.SQLGenerator;
 import org.joda.time.DateTime;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +19,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static lucky.baijunhan.datamock.StockDataInsertService.SCHEMA_NAME;
+import static ink.windlively.datamock.StockDataInsertService.SCHEMA_NAME;
 
 @Service
 @Slf4j

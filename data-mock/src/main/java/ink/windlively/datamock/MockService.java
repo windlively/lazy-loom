@@ -1,4 +1,4 @@
-package lucky.baijunhan.datamock;
+package ink.windlively.datamock;
 
 import org.springframework.stereotype.Service;
 

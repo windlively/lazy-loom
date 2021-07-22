@@ -1,6 +1,6 @@
-package lucky.baijunhan.datamock;
+package ink.windlively.datamock;
 
-import lucky.baijunhan.datamock.tools.DaoTools;
+import ink.windlively.datamock.tools.DaoTools;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,9 +9,8 @@ import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
 
-import static lucky.baijunhan.datamock.tools.RandomDataGenerator.*;
-import static lucky.baijunhan.datamock.tools.SQLGenerator.genInsertSQL;
-import static lucky.baijunhan.datamock.tools.SQLGenerator.genUpdateSQL;
+import static ink.windlively.datamock.tools.RandomDataGenerator.*;
+import static ink.windlively.datamock.tools.SQLGenerator.genInsertSQL;
 
 @SpringBootTest
 class DataMockApplicationTests {

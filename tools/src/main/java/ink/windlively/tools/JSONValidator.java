@@ -21,112 +21,261 @@ import java.util.stream.Stream;
  * 模板文件样例:
  * <pre>
  * {
- * 	"template": {   //template为模板文件内容, 即{@link #JSONValidator(Map)} (JSONObject)} 实际传入的为template中的内容
- * 		"_id": {    // 配置项的key名称
- * 			"type": "string",   // 类型, 支持object, list, boolean, number, string
- * 			"required": true    // 是否为必须出现的项
- *                },
- * 		"converter": {
- * 			"type": "list",
- * 			"required": true,
- * 			"item": {   // list类型下, item代表list中每一项的规则
- * 				"type": "object",
- * 				"fields": {
- * 					"core_table": {
- * 						"type": "string",
- * 						"required": true
- *                    },
- * 					"eval_context": {
- * 						"type": "list",
- * 						"item": {
- * 							"type": "object",
- * 							"fields_option": "custom_data|sql,type|db_name,t_name,where_case",  // object类型下, 该规则指定了可出现的字段组合, 且必须至少满足一组
- * 							"fields": {
- * 								"type": {
- * 									"type": "string"
- *                                },
- * 								"name": {
- * 									"required": true,
- * 									"type": "string"
- *                                },
- * 								"custom_data": {
- * 									"required": false,
- * 									"type": "string"
- *                                },
- * 								"sql": {
- * 									"required": false,
- * 									"type": "string"
- *                                },
- * 								"db_name": {
- * 									"required": false,
- * 									"type": "string"
- *                                },
- * 								"t_name": {
- * 									"required": false,
- * 									"type": "string"
- *                                },
- * 								"where_case": {
- * 									"required": false,
- * 									"type": "string"
- *                                }
- *                            }
- *                        }
- *                    },
- * 					"sample_class_convert": {
- * 						"type": "boolean",
- * 						"required": false
- *                    },
- * 					"sample_value_convert": {
- * 						"type": "object",
- * 						"required": false,
- * 						"reg_key": {    // object类型中, 该项使用正则表达式匹配key值, 但是忽略fields中已处理过的项
- * 							"\\w+": {
- * 								"type": "string"
- *                            }
- *                        }
- *                    },
- * 					"custom_operation": {
- * 						"type": "list",
- * 						"item": {
- * 							"type": "string"
- *                        }
- *                    },
- * 					"filter": {
- * 						"type": "string"
- *                    },
- * 					"enums": {
- * 						"type": "object"
- *                    },
- * 					"conditional": {
- * 						"type": "list",
- * 						"item": {
- * 							"type": "object",
- * 							"fields": {
- * 								"condition": {
- * 									"type": "string",
- * 									"required": true
- *                                },
- * 								"expression": {
- * 									"type": "list|string",
- * 									"required": true,
- * 									"item": {
- * 										"type": "object|string",
- * 										"fields_ref": "converter.item.fields.conditional.item.fields" // 参照此模板文件的另一处fields
- *                                    }
- *                                }
- *                            }
- *                        }
- *                    },
- * 					"pre_processor": {
- * 						"type": "string"
- *                    },
- * 					"post_processor": {
- * 						"type": "string"
- *                    }
- *                }
- *            }
- *        }* 	},
- * 	"_id": "sync_config"
+ *   "type": "object",
+ *   "required": true,
+ *   "fields": {
+ *     "_id": {
+ *       "type": "string",
+ *       "required": true,
+ *       "value_reg": "\\w+"
+ *     },
+ *     "source": {
+ *       "type": "string",
+ *       "required": true,
+ *       "value_reg": "\\w+"
+ *     },
+ *     "schema": {
+ *       "type": "string",
+ *       "required": true,
+ *       "value_reg": "\\w+"
+ *     },
+ *     "name": {
+ *       "type": "string",
+ *       "required": true,
+ *       "value_reg": "\\w+"
+ *     },
+ *     "node_list": {
+ *       "type": "list",
+ *       "required": true,
+ *       "item": {
+ *         "type": "object",
+ *         "fields_ref": "node_regular.fields"
+ *       }
+ *     }
+ *   },
+ *   "node_regular": {
+ *     "type": "object",
+ *     "required": true,
+ *     "fields": {
+ *       "node_name": {
+ *         "required": true,
+ *         "type": "string",
+ *         "value_reg": "\\w+"
+ *       },
+ *       "eval_context": {
+ *         "type": "list",
+ *         "item": {
+ *           "type": "object",
+ *           "fields_option": "expression|sql,type",
+ *           "fields": {
+ *             "name": {
+ *               "type": "string",
+ *               "required": true
+ *             },
+ *             "expression": {
+ *               "type": "string"
+ *             },
+ *             "sql": {
+ *               "type": "string",
+ *               "value_reg": "SELECT.+FROM.+"
+ *             },
+ *             "type": {
+ *               "type": "string",
+ *               "value_option": ["list", "map", "object"]
+ *             },
+ *             "on_condition": {
+ *               "type": "string",
+ *               "value_reg": ".+"
+ *             },
+ *             "data_source": {
+ *               "type": "string",
+ *               "value_reg": "\\w+"
+ *             }
+ *           }
+ *         }
+ *       },
+ *       "skip_if_exception": {
+ *         "type": "boolean"
+ *       },
+ *       "resolve_order": {
+ *         "type": "list",
+ *         "item": {
+ *           "type": "string",
+ *           "value_option": [
+ *             "eval_context",
+ *             "filter",
+ *             "simple_copy_fields",
+ *             "simple_convert",
+ *             "conditional_expression",
+ *             "additional_expression",
+ *             "export_to_rdb",
+ *             "export_to_mq"
+ *           ]
+ *         }
+ *       },
+ *       "filter": {
+ *         "type": "string"
+ *       },
+ *       "simple_copy_fields": {
+ *         "type": "boolean"
+ *       },
+ *       "simple_convert": {
+ *         "type": "object",
+ *         "reg_key": {
+ *           "\\w+": {
+ *             "type": "string"
+ *           }
+ *         }
+ *       },
+ *       "export_to_mp": {
+ *         "type": "object",
+ *         "fields": {
+ *           "data": {
+ *             "type": "string",
+ *             "value_reg": ".+"
+ *           },
+ *           "topic": {
+ *             "required": true,
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           },
+ *           "mq_name": {
+ *             "required": true,
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           },
+ *           "mq_type": {
+ *             "required": false,
+ *             "type": "string",
+ *             "value_option": ["kafka", "rocket"]
+ *           },
+ *           "tag": {
+ *             "required": false,
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           }
+ *         }
+ *       },
+ *       "export_to_rdb": {
+ *         "type": "object",
+ *         "fields": {
+ *           "method": {
+ *             "type": "string",
+ *             "value_option": ["upsert", "insert"]
+ *           },
+ *           "target_data_source": {
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           },
+ *           "target_schema": {
+ *             "required": true,
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           },
+ *           "target_table": {
+ *             "required": true,
+ *             "type": "string",
+ *             "value_reg": "\\w+"
+ *           },
+ *           "sql_log": {
+ *             "required": false,
+ *             "type": "boolean"
+ *           },
+ *           "data": {
+ *             "type": "string",
+ *             "value_reg": ".+"
+ *           },
+ *           "find_original": {
+ *             "type": "object",
+ *             "fields": {
+ *               "sql": {
+ *                 "type": "string",
+ *                 "value_reg": ".+"
+ *               },
+ *               "match_fields": {
+ *                 "type": "list",
+ *                 "item": {
+ *                   "type": "string",
+ *                   "value_reg": "\\w+"
+ *                 }
+ *               }
+ *             }
+ *           },
+ *           "update": {
+ *             "type": "object",
+ *             "fields": {
+ *               "sql": {
+ *                 "type": "string",
+ *                 "value_reg": ".+"
+ *               },
+ *               "match_fields": {
+ *                 "type": "list",
+ *                 "item": {
+ *                   "type": "string",
+ *                   "value_reg": "\\w+"
+ *                 }
+ *               },
+ *               "custom_fields": {
+ *                 "type": "object",
+ *                 "reg_key": {
+ *                   "\\w+": {
+ *                     "type": "string",
+ *                     "value_reg": ".+"
+ *                   }
+ *                 }
+ *               }
+ *             }
+ *           },
+ *           "insert": {
+ *             "type": "object",
+ *             "required": true,
+ *             "fields": {
+ *               "sql": {
+ *                 "type": "string",
+ *                 "value_reg": ".+"
+ *               },
+ *               "custom_fields": {
+ *                 "type": "object",
+ *                 "reg_key": {
+ *                   "\\w+": {
+ *                     "type": "string",
+ *                     "value_reg": ".+"
+ *                   }
+ *                 }
+ *               }
+ *             }
+ *           }
+ *         }
+ *       },
+ *       "conditional_expression": {
+ *         "type": "list",
+ *         "item": {
+ *           "type": "object",
+ *           "fields": {
+ *             "condition": {
+ *               "type": "string",
+ *               "required": true
+ *             },
+ *             "expression": {
+ *               "type": "list|string",
+ *               "required": true,
+ *               "item": {
+ *                 "type": "object|string",
+ *                 "fields_ref": "node_regular.fields.conditional_expression.item.fields",
+ *                 "value_reg": ".+"
+ *               }
+ *             }
+ *           }
+ *         }
+ *       },
+ *       "additional_expression": {
+ *         "type": "list",
+ *         "item": {
+ *           "type": "string"
+ *         }
+ *       }
+ *     }
+ *   }
  * }
  * </pre>
  */
@@ -194,7 +343,7 @@ public class JSONValidator {
      * @param errorInfo        错误信息
      */
     @SuppressWarnings("unchecked")
-    private void validate(Map<String, Object> config, String keyPrefix, Map<String, Object> validationFields, @org.springframework.lang.NonNull Map<String, String> errorInfo) {
+    private void validate(Map<String, Object> config, String keyPrefix, Map<String, Object> validationFields, @NonNull Map<String, String> errorInfo) {
         // 遍历模板配置, k为字段名, v为校验规则
         validationFields.forEach((k, v) -> {
             Map<String, Object> regular = (Map<String, Object>) v;
@@ -282,8 +431,8 @@ public class JSONValidator {
     private void validateObjectType(String prefixKey, Class<?> javaType, Map<String, Object> regular, Object configItem, Map<String, String> errorInfo) {
         Map<String, Object> fieldsRegular;
         if (javaType.equals(Map.class)
-                && validateOptionalFields(regular, prefixKey, (Map<String, Object>) configItem, errorInfo)
-                && (((fieldsRegular = regular.get("fields_ref") == null ?
+            && validateOptionalFields(regular, prefixKey, (Map<String, Object>) configItem, errorInfo)
+            && (((fieldsRegular = regular.get("fields_ref") == null ?
                 (Map<String, Object>) regular.get("fields") : findObject(template, (String) regular.get("fields_ref"))) != null)
                 || regular.get("reg_key") != null)) {
             validateRegKey(errorInfo, regular, (Map<String, Object>) configItem, prefixKey, fieldsRegular);
@@ -301,17 +450,17 @@ public class JSONValidator {
      * @param currentKeyPrefix 校验的位置
      * @param javaType         JAVA类类型
      */
-    private void validateStringType(Map<String, Object> regular, Object configItem, String currentKeyPrefix, Class<?> javaType, @org.springframework.lang.NonNull Map<String, String> errorInfo) {
+    private void validateStringType(Map<String, Object> regular, Object configItem, String currentKeyPrefix, Class<?> javaType, @NonNull Map<String, String> errorInfo) {
         if (javaType.equals(String.class)) {
             List<String> valueOption;
             String valueReg;
             //noinspection unchecked
             if ((valueOption = (List<String>) regular.get("value_option")) != null
-                    && !valueOption.contains((String) configItem)) {
+                && !valueOption.contains((String) configItem)) {
                 // 待校验的值不在'value_option(可选值)'之中
                 errorInfo.put(currentKeyPrefix, String.format("optional value is %s, not contains [%s]", valueOption, configItem));
             } else if (StringUtils.isNotEmpty(valueReg = (String) regular.get("value_reg"))
-                    && !((String) configItem).matches(valueReg)) {
+                       && !((String) configItem).matches(valueReg)) {
                 // 待校验的值不符合正则表达式规则
                 errorInfo.put(currentKeyPrefix, String.format("value [%s] not match [%s]", configItem, valueReg));
             }
@@ -320,7 +469,7 @@ public class JSONValidator {
 
 
     @SuppressWarnings("unchecked")
-    private void validateRegKey(@org.springframework.lang.NonNull Map<String, String> errorInfo, Map<String, Object> curTemplate,
+    private void validateRegKey(@NonNull Map<String, String> errorInfo, Map<String, Object> curTemplate,
                                 Map<String, Object> item, String currentKeyPrefix, @Nullable Map<String, Object> fieldsRegular) {
         if (curTemplate.get("reg_key") != null) {
             ((Map<String, Object>) curTemplate.get("reg_key")).forEach((regKey, v1) ->
@@ -392,4 +541,5 @@ public class JSONValidator {
                 throw new IllegalArgumentException("unknown value type: " + type);
         }
     }
+
 }

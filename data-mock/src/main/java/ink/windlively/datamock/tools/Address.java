@@ -1,4 +1,4 @@
-package lucky.baijunhan.datamock.tools;
+package ink.windlively.datamock.tools;
 
 import lombok.Builder;
 
