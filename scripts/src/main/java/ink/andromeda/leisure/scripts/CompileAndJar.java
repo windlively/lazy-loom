@@ -24,27 +24,27 @@ public class CompileAndJar {
 
     public static void main(String[] args) {
         compileAndJar(Arrays.asList("\n" +
-                        "public class SayHello {\n" +
-                        "    " +
-                        "public void sayHello() {\n" +
-                        "        System.out.println(\"Hello World\");\n" +
-                        "    " +
-                        "}\n" +
-                        "}", "\n" +
-                        "public class SayHello2 {\n" +
-                        "    " +
-                        "public void sayHello() {\n" +
-                        "        System.out.println(\"Hello World\");\n" +
-                        "    " +
-                        "}\n" +
-                        "}",
-                        "public class SayHello3 {\n" +
-                        "    " +
-                        "public void sayHello() {\n" +
-                        "        System.out.println(\"Hello World\");\n" +
-                        "    " +
-                        "}\n" +
-                        "}"));
+                                    "public class SayHello {\n" +
+                                    "    " +
+                                    "public void sayHello() {\n" +
+                                    "        System.out.println(\"Hello World\");\n" +
+                                    "    " +
+                                    "}\n" +
+                                    "}", "\n" +
+                                         "public class SayHello2 {\n" +
+                                         "    " +
+                                         "public void sayHello() {\n" +
+                                         "        System.out.println(\"Hello World\");\n" +
+                                         "    " +
+                                         "}\n" +
+                                         "}",
+                "public class SayHello3 {\n" +
+                "    " +
+                "public void sayHello() {\n" +
+                "        System.out.println(\"Hello World\");\n" +
+                "    " +
+                "}\n" +
+                "}"));
     }
 
     public static Pattern FIND_CLASS_NAME_PATTERN = Pattern.compile("(?i)(?<=class)(\\s+?\\w+?\\s+?)(?=\\{)");
@@ -80,7 +80,7 @@ public class CompileAndJar {
                 log.info("class name: {}", className);
                 String sourceCodeFile = String.format("%s/%s.java", workDir, className);
                 code = "package " + packageName + ";\n"
-                        + code;
+                       + code;
                 Files.write(Paths.get(sourceCodeFile), code.getBytes(StandardCharsets.UTF_8),
                         StandardOpenOption.CREATE,
                         StandardOpenOption.WRITE);

@@ -1,10 +1,10 @@
 package ink.windlively.fileserver.controller;
 
 import ink.windlively.fileserver.model.FileModel;
-import ink.windlively.fileserver.utils.Utils;
-import lombok.extern.slf4j.Slf4j;
 import ink.windlively.fileserver.model.HttpResult;
 import ink.windlively.fileserver.service.FileService;
+import ink.windlively.fileserver.utils.Utils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +16,10 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Date;
@@ -137,9 +140,7 @@ public class FileController {
     }
 
     @RequestMapping("/upload-page")
-    public Object upload(){
-        ModelAndView mv = new ModelAndView();
-        mv.setViewName("upload");
-        return mv;
+    public ModelAndView upload(){
+        return new ModelAndView("upload");
     }
 }
