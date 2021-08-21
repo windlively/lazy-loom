@@ -21,6 +21,7 @@ import java.math.BigDecimal;
 import java.sql.*;
 import java.util.Date;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -198,7 +199,9 @@ public class GeneralTools {
         Class<?> destClass = dest.getClass();
         Class<?> sourceClass = source.getClass();
         // 仅处理当前对象的字段, 不处理继承的字段
-        doWithLocalFields(sourceClass, field -> {
+        boolean inherit = false;
+
+        Consumer<Field> consumer = field -> {
             makeAccessible(field);
             Object srcVal = getField(field, source);
             if (srcVal != null) {
@@ -214,7 +217,10 @@ public class GeneralTools {
                     }
                 }
             }
-        });
+        };
+
+        doWithLocalFields(sourceClass, consumer::accept);
+        doWithFields(sourceClass, consumer::accept);
         return dest;
     }
 
@@ -264,7 +270,15 @@ public class GeneralTools {
 //        System.out.println(upCaseToCamelCase("totalPaymentAmount",false));;
 //        System.out.println("select".matches("(select)|(insert)|(delete)|(update)"));
 
+        Map<String, Object> map = gson.get().fromJson("{tnt_inst_id: '1000', outer_org_id: '0001', app_id: '111', channel_id: '0002', outer_org_name: '测试企业',\n" +
+                "        outer_org_acct: '111', ip_role_id: '111', ip_id: '111', daily_disc_limit: '10000',\n" +
+                "        daily_disc_limit_ccy: CNY, daily_disc_amt:  '1000', daily_disc_ccy: CNY,\n" +
+                "        monthly_disc_limit: '100000', monthly_disc_limit_ccy: CNY,\n" +
+                "        monthly_disc_amt: '1000', monthly_disc_ccy: CNY, distribute_cust_limit: '1000',\n" +
+                "        distribute_cust_cnt: CNY, status: success, gmt_create: NOW(), gmt_modified: NOW(),\n" +
+                "        del_flag: '0'}", Map.class);
 
+        System.out.println(SQLGenerator.genInsertSQL(map, null, "", "bots_outer_org_info"));
     }
 
     public static void genAllCoreBean() throws IOException {
@@ -479,4 +493,5 @@ public class GeneralTools {
     public static void checkNotEmpty(String str, String paramName) {
         Assert.isTrue(isNotEmpty(str), paramName + " must be not empty");
     }
+
 }

@@ -1,5 +1,6 @@
 package ink.windlively.fileserver.service;
 
+import ink.windlively.fileserver.model.FileType;
 import ink.windlively.fileserver.utils.Utils;
 import lombok.extern.slf4j.Slf4j;
 import ink.windlively.fileserver.model.HttpResult;
@@ -10,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 
@@ -30,24 +32,24 @@ public class FileService {
             String fileType = "";
             if (originalName.lastIndexOf(".") == -1) {
                 fileType = ".undefined";
-//            try {
-//                byte[] bytes = multipartFile.getBytes();
-//                bytes = Arrays.copyOf(bytes,28);
-//                String head = bytesToHexString(bytes);
-//                for (FileType type : FileType.values()){
-//                    if(head.startsWith(type.getValue())){
-//                        fileType = type.name();
-//                        break;
-//                    }
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+                try {
+                    byte[] bytes = multipartFile.getBytes();
+                    bytes = Arrays.copyOf(bytes, 28);
+                    String head = bytesToHexString(bytes);
+                    for (FileType type : FileType.values()) {
+                        if (head.startsWith(type.getValue())) {
+                            fileType = type.name();
+                            break;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             } else
                 fileType = originalName.substring(originalName.lastIndexOf("."));
 
             fileName = new SimpleDateFormat("yyyyMMdd_HH:mm:ss_")
-                               .format(new Date()) + UUID.randomUUID().toString().replaceAll("-", "") + fileType;
+                    .format(new Date()) + UUID.randomUUID().toString().replaceAll("-", "") + fileType;
         }
         // 保存的位置
         File file = new File(Utils.makePath(baseDir, path, fileName));
