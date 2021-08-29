@@ -1,6 +1,7 @@
 package ink.windlively.fileserver.controller;
 
 import ink.windlively.fileserver.model.FileModel;
+import ink.windlively.fileserver.model.FileServerConfig;
 import ink.windlively.fileserver.model.HttpResult;
 import ink.windlively.fileserver.service.FileService;
 import ink.windlively.fileserver.utils.Utils;
@@ -33,9 +34,13 @@ public class FileController {
 
     private final static String REQ_PREFIX = "/file-server/files";
 
-    public FileController(FileService fileService) {
+    public FileController(FileService fileService,
+                          FileServerConfig fileServerConfig) {
         this.fileService = fileService;
+        this.fileServerConfig = fileServerConfig;
     }
+
+    private final FileServerConfig fileServerConfig;
 
     @PostMapping("/one-file")
     public HttpResult<String> fileUpload(@RequestParam(name = "file") MultipartFile multipartFile,
@@ -44,34 +49,43 @@ public class FileController {
         return fileService.saveOneFile(multipartFile, path, saveAsOriginalName);
     }
 
+    @RequestMapping("/explorer/**")
+    public Object index(HttpServletRequest request) {
+        return fileExplorer("explorer", request);
+    }
+
     @RequestMapping(value = "/files/**")
-    public Object fileExplorer(HttpServletRequest request) {
-        String reqPath = request.getServletPath().substring("/files".length());
-        if(reqPath.equals(""))
-            reqPath = "/";
-        String filePath = Utils.makePath(fileService.baseDir, reqPath);
+    public Object files(HttpServletRequest request) {
+        return fileExplorer("files", request);
+    }
+
+    private Object fileExplorer(String repPathPrefix, HttpServletRequest request){
+        String reqFilePath = request.getServletPath().substring(("/" + repPathPrefix).length());
+        if (reqFilePath.equals(""))
+            reqFilePath = "/";
+        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), reqFilePath);
         File file = new File(filePath);
         ModelAndView mv = new ModelAndView();
         if (!file.exists()) {
             mv.setViewName("error");
-            mv.addObject("message", "file or dir: " + reqPath + " not exist!");
+            mv.addObject("message", "file or dir: " + reqFilePath + " not exist!");
             return mv;
         }
         if (file.isDirectory()) {
             // 父目录
-            String parentDir = reqPath.substring(0, reqPath.lastIndexOf('/'));
+            String parentDir = reqFilePath.substring(0, reqFilePath.lastIndexOf('/'));
             List<FileModel> childs = new ArrayList<>();
             mv.setViewName("index");
             mv.addObject("childs", childs);
-            mv.addObject("index", reqPath);
-            childs.add(new FileModel(REQ_PREFIX + "/", "/", true, null,0));
+            mv.addObject("index", reqFilePath);
+            childs.add(new FileModel(REQ_PREFIX + "/", "/", true, null, 0));
             childs.add(new FileModel(Utils.makePath(REQ_PREFIX, parentDir), "..", true, null, 0));
             File[] files = file.listFiles();
             if (files == null || files.length == 0) {
                 return mv;
             }
             for (File f : files) {
-                FileModel fm = new FileModel(Utils.makePath(REQ_PREFIX, reqPath, f.getName()),
+                FileModel fm = new FileModel(Utils.makePath(REQ_PREFIX, reqFilePath, f.getName()),
                         f.getName(),
                         f.isDirectory(),
                         new Date(f.lastModified()),
@@ -80,7 +94,7 @@ public class FileController {
             }
         } else {
 //            URLEncoder.encode("/download" + reqPath, StandardCharsets.UTF_8);
-            mv.setViewName("redirect:/download" + new String(reqPath.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1));
+            mv.setViewName("redirect:/download" + new String(reqFilePath.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1));
 //            try (
 //                InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
 //            ){
@@ -101,19 +115,19 @@ public class FileController {
 
     @RequestMapping("/delete/**")
     public Object delete(HttpServletRequest request) throws IOException {
-        ModelAndView mv  = new ModelAndView();
+        ModelAndView mv = new ModelAndView();
         String reqPath = request.getServletPath().substring("/delete".length());
-        if(reqPath.equals(""))
+        if (reqPath.equals(""))
             reqPath = "/";
-        if(reqPath.equals("/")){
+        if (reqPath.equals("/")) {
             mv.addObject("error", "root dir could not delete!");
             return mv;
         }
-        String filePath = Utils.makePath(fileService.baseDir, reqPath);
+        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), reqPath);
         File file = new File(filePath);
-        if(file.isDirectory()){
+        if (file.isDirectory()) {
 
-            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>(){
+            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
                     Files.delete(file);
@@ -127,7 +141,7 @@ public class FileController {
                 }
             });
         }
-        if(file.delete()) {
+        if (file.delete()) {
             log.info("delete file: {}", filePath);
             mv.addObject("message", "delete file: " + reqPath + " success");
         } else {
@@ -140,7 +154,7 @@ public class FileController {
     }
 
     @RequestMapping("/upload-page")
-    public ModelAndView upload(){
+    public ModelAndView upload() {
         return new ModelAndView("upload");
     }
 }

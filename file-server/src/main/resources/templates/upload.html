@@ -2,31 +2,39 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org">
 <header>
-  <title>upload</title>
+  <title>文件上传</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
 </header>
-<body style="width: 100%;height: 100vh; display: flex; justify-content: center;align-items: center">
-<form th:action="@{/one-file}" method="post" enctype="multipart/form-data">
-  <div>
-    <input type="file" name="file" placeholder=""/>
-  </div>
-  <div style="font-size: 14px">
-    <label>
-      <span style="font-size: 12px">上传路径: </span>
-      <input type="text" name="path"/>
-    </label>
-  </div>
-  <div>
-    <label>
-      <span style="font-size: 12px">不保留原始文件名: </span>
-      <input type="checkbox" value="false" name="saveAsOriginalName"/>
-    </label>
-  </div>
-  <div>
-    <button type="submit">submit</button>
-  </div>
-  <div>
-    <span style="color: red">文件名及路径名仅包含英文、下划线及汉字！</span>
-  </div>
-</form>
+<body style="width: 100%;height: 100vh; ">
+<div class="row" style="width: 100%; height: 100%; display: flex; justify-content: center;align-items: center">
+  <form th:action="@{/one-file}" method="POST" enctype="multipart/form-data" class="col-lg-6 col-md-8 col-sm-10">
+    <div class="">
+      <label for="formFile" class="form-label">请选择文件:</label>
+      <input class="form-control" id="formFile" type="file" name="file" placeholder=""/>
+    </div>
+
+    <div>
+      <label class="form-label">上传路径:</label>
+      <input class="form-control" type="text" name="path" aria-describedby="pathHelp"/>
+      <div id="pathHelp" class="form-text">
+        example: /my-file/photos<br>
+        <span style="color: red">文件名及路径名仅可包含英文、下划线及汉字！</span>
+      </div>
+    </div>
+
+    <div class="form-check">
+      <input class="form-check-input" type="checkbox" value="false" name="saveAsOriginalName" id="flexCheck">
+      <label class="form-check-label" for="flexCheck">
+        不保留原始文件名
+      </label>
+    </div>
+
+    <div style="display: flex; flex-direction: row-reverse">
+      <button type="submit" class="btn btn-primary">submit</button>
+    </div>
+
+  </form>
+</div>
 </body>
 </html>

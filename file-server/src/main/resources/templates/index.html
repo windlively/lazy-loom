@@ -45,8 +45,12 @@
     </tbody>
   </table>
 </div>
-<script>
-
+<script th:inline="javascript">
+  window.onload = () => {
+      if(![[${index}]]){
+          window.location = [[@{/files}]]
+      }
+  }
 </script>
 </body>
 </html>

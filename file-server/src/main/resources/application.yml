@@ -2,7 +2,8 @@ logging:
   file:
     path: /data/logs/file-server
 file-server:
-  base-dir: /data/file-server
+  workspace: /data/file-server
+  host: http://localhost:8080
 server:
   servlet:
     context-path: /file-server
