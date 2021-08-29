@@ -4,6 +4,8 @@
 <header>
   <title>index</title>
   <link th:href="@{/assets/css/animate.min.css}" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
   <style>
     table {
       border-spacing: 30px 0;
@@ -13,6 +15,9 @@
 <body>
 <div style="margin-left: 20px;font-size: 14px">
   <h2 th:text="'index of: &nbsp;' + ${index}"></h2>
+  <div style="padding: 5px 0">
+    <a th:href="@{/upload-page}" class="btn btn-light btn-sm">上传文件</a>
+  </div>
   <span style="font-size: 14px;color: red" th:if="${not #strings.isEmpty(error)}" th:text="${error}"></span>
   <span style="font-size: 14px" th:if="${not #strings.isEmpty(message)}" th:text="${message}"></span>
   <table>
@@ -30,7 +35,7 @@
         &bull;&nbsp;&nbsp;<a th:href="${file.reqPath}" target="_blank" th:text="${file.name}"></a>
       </td>
       <td th:if="${file.dir}">
-        -&nbsp;&nbsp;<a  th:href="${file.reqPath}" th:text="${file.name}"></a>
+        +&nbsp;&nbsp;<a  th:href="${file.reqPath}" th:text="${file.name}"></a>
       </td>
       <td>
         <span th:text="${#dates.format(file.lastModified)}"></span>
@@ -38,7 +43,7 @@
       <td>
         <span th:text="${#numbers.formatDecimal(file.spaces/1024.0d/1024.0d, 1, 2)} + 'Mb'"></span>
       </td>
-      <td th:if="${file.getName() != '/' and file.getName() != '..'}">
+      <td th:if="${file.getName() != '根目录' and file.getName() != '上一级'}">
         <a th:href="${'/file-server/delete' + #strings.substring(file.reqPath, #strings.length('/file-server/files'))}">delete</a>
       </td>
     </tr>

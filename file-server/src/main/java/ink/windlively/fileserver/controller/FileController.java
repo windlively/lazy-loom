@@ -78,8 +78,8 @@ public class FileController {
             mv.setViewName("index");
             mv.addObject("childs", childs);
             mv.addObject("index", reqFilePath);
-            childs.add(new FileModel(REQ_PREFIX + "/", "/", true, null, 0));
-            childs.add(new FileModel(Utils.makePath(REQ_PREFIX, parentDir), "..", true, null, 0));
+            childs.add(new FileModel(REQ_PREFIX + "/", "根目录", true, null, 0));
+            childs.add(new FileModel(Utils.makePath(REQ_PREFIX, parentDir), "上一级", true, null, 0));
             File[] files = file.listFiles();
             if (files == null || files.length == 0) {
                 return mv;
