@@ -1,6 +1,8 @@
 package ink.windlively.tools;
 
 import java.util.Random;
+import java.util.jar.JarFile;
+import java.util.stream.BaseStream;
 import java.util.stream.IntStream;
 
 public class Test {

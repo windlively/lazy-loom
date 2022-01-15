@@ -1,14 +1,15 @@
-package ink.windlively.tools.parallelprocessor;
+package ink.windlively.frame.parallelprocessor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
+import org.springframework.lang.NonNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.function.Function;
 
@@ -20,7 +21,7 @@ import static java.util.Optional.ofNullable;
 @FunctionalInterface
 public interface ExecutionFlow extends Function<ExecutionContext, ExecutionContext> {
 
-    Logger log = LoggerFactory.getLogger(ExecutionFlow.class);
+    Logger logger = LoggerFactory.getLogger(ExecutionFlow.class);
 //
 //    @Override
 //    default ExecutionContext apply(ExecutionContext executionContext) {
@@ -31,7 +32,7 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
 //                           Consumer<ExecutionContext> preAction,
 //                           Consumer<ExecutionContext> finishAction);
 
-    static ExecutionFlow buildFlow(@NotNull ExecutionGraph executionGraph) {
+    static ExecutionFlow buildFlow(@NonNull ExecutionGraph executionGraph) {
         return buildFlow(executionGraph, new FlowConfiguration());
     }
 
@@ -40,10 +41,9 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
      *
      * @param executionGraph    执行任务图
      * @param flowConfiguration 执行参数
-     *
      * @return
      */
-    static ExecutionFlow buildFlow(@NotNull ExecutionGraph executionGraph, @NotNull FlowConfiguration flowConfiguration) {
+    static ExecutionFlow buildFlow(@NonNull ExecutionGraph executionGraph, @NonNull FlowConfiguration flowConfiguration) {
         SpelExpressionParser expressionParser = new SpelExpressionParser();
         return ctx -> {
             long startTime = System.currentTimeMillis();
@@ -65,18 +65,20 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
                                 try {
                                     // 阻塞等待
                                     futureMap.get(s).get();
-                                    log.info("current node [{}] waiting node [{}] done ({}ms)", currNodeName, s, System.currentTimeMillis() - t1);
+                                    logger.info("current node [{}] waiting node [{}] done ({}ms)", currNodeName, s, System.currentTimeMillis() - t1);
                                 } catch (InterruptedException | ExecutionException e) {
                                     throw new IllegalStateException("current node [" + currNodeName + "] waiting node [" + s + "] failed", e);
                                 }
                             }
                             long t2 = System.currentTimeMillis();
-                            log.info("current node [{}] start", currNodeName);
+                            logger.info("current node [{}] start", currNodeName);
 
                             // 前置表达式参数检查
-                            if (StringUtils.isNotBlank(node.getBeforeCheckExpression()) &&
-                                    !expressionParser.parseExpression(node.getBeforeCheckExpression()).getValue(ctx.getCtx(), boolean.class)) {
-                                throw new IllegalStateException(String.format("before check failed by expression [%s]", node.getBeforeCheckExpression()));
+                            //noinspection ConstantConditions
+                            if (Objects.nonNull(node.getBeforeCheckExpression()) &&
+                                !node.getBeforeCheckExpression().getValue(ctx.getCtx(), boolean.class)) {
+                                throw new IllegalStateException(String.format("before check failed by expression [%s]"
+                                        , node.getBeforeCheckExpression().getExpressionString()));
                             }
                             // 执行节点
                             ExecutionContext ret = node.getExecution().apply(ctx);
@@ -84,15 +86,17 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
                             ctx.setVar("$" + currNodeName + "_success", true);
 
                             // 后置表达式参数检查
-                            if (StringUtils.isNotBlank(node.getAfterCheckExpression()) &&
-                                    !expressionParser.parseExpression(node.getAfterCheckExpression()).getValue(ctx.getCtx(), boolean.class)) {
-                                throw new IllegalStateException(String.format("after check failed by expression [%s]", node.getAfterCheckExpression()));
+                            //noinspection ConstantConditions
+                            if (Objects.nonNull(node.getAfterCheckExpression()) &&
+                                !node.getAfterCheckExpression().getValue(ctx.getCtx(), boolean.class)) {
+                                throw new IllegalStateException(String.format("after check failed by expression [%s]"
+                                        , node.getAfterCheckExpression().getExpressionString()));
                             }
                             long tl = System.currentTimeMillis();
-                            log.info("current node [{}] execute done (total: {}ms, execution: {}ms)", currNodeName, tl - t1, tl - t2);
+                            logger.info("current node [{}] execute done (total: {}ms, execution: {}ms)", currNodeName, tl - t1, tl - t2);
                             return ret;
                         } catch (Throwable e) {
-                            log.warn("current node [{}] execute failed: {}, skip exception={}", currNodeName, e.getMessage(), node.isSkipOnFail(), e);
+                            logger.warn("current node [{}] execute failed: {}, skip exception={}", currNodeName, e.getMessage(), node.isSkipOnFail(), e);
                             if (node.isSkipOnFail()) {
                                 return ctx;
                             }
@@ -109,16 +113,16 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
             try {
                 // 组合所有的Future，等待所有节点行完毕
                 CompletableFuture<Void> completableFuture = CompletableFuture.allOf(futureMap.values().toArray(new CompletableFuture[0]));
-                log.info("starting flow execution down, ttl={}", flowConfiguration.getTimeout());
-                if(flowConfiguration.getTimeout() > 0) {
+                logger.info("waiting flow execution down, ttl={}", flowConfiguration.getTimeout());
+                if (flowConfiguration.getTimeout() > 0) {
                     completableFuture.get(flowConfiguration.getTimeout(), TimeUnit.SECONDS);
                 } else {
                     completableFuture.get();
                 }
-                log.info("execution flow success ({}ms)", System.currentTimeMillis() - startTime);
+                logger.info("execution flow success ({}ms)", System.currentTimeMillis() - startTime);
                 return ctx;
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                log.warn("execution flow failed: {} ({}ms)", e.getMessage(), System.currentTimeMillis() - startTime);
+                logger.warn("execution flow failed: {} ({}ms)", e.getMessage(), System.currentTimeMillis() - startTime);
                 throw new IllegalStateException(e);
             }
         };

@@ -39,14 +39,14 @@ public class ZhaoKai {
     public static void main(String[] args) {
 //        checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/正常数据/109.正常.txt");
 //        checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/异常数据/1.异常.txt", false);
-//        checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/异常数据/315.异常.txt");
+        checkFile("/Users/windlively/Desktop/附件5：动态轨迹数据.txt",true);
 
         // 遍历324个文件，逐一处理
-        IntStream.range(1, 325).forEach(i ->
+//        IntStream.range(1, 325).forEach(i ->
 //                        checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/正常数据/" + i + ".正常.txt", true)
-                checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/异常数据/"+i+".异常.txt",false)
-
-        );
+//                checkFile("/Users/windlively/Desktop/2021年E题/附件1：UWB数据集/异常数据/"+i+".异常.txt",false)
+//
+//        );
 
     }
 
@@ -125,10 +125,10 @@ public class ZhaoKai {
                         }
 
                         // 根据四组数据进行是否为三角形的校验
-                        if (!checkIsTriangle(value)) {
-                            System.err.printf("异常数据, 三角形规则校验失败, 组id：%s, 组内值: %s\n", e.getKey(), value);
-                            return false;
-                        }
+//                        if (!checkIsTriangle(value)) {
+//                            System.err.printf("异常数据, 三角形规则校验失败, 组id：%s, 组内值: %s\n", e.getKey(), value);
+//                            return false;
+//                        }
 
                         return true;
                     })

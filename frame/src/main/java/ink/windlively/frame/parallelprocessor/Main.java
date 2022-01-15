@@ -1,4 +1,4 @@
-package ink.windlively.tools.parallelprocessor;
+package ink.windlively.frame.parallelprocessor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,11 +7,9 @@ import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static ink.windlively.tools.parallelprocessor.ExecutionGraph.createGraph;
-
 public class Main {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         Random random = new Random();
 
         Map<String, Function<ExecutionContext, ExecutionContext>> functionMap = Arrays.stream("A,B,C,D,E,F,G,H,I,J,K,L".split(",")).collect(Collectors.toMap(
@@ -21,7 +19,7 @@ public class Main {
                         int i = 500 + 500 * random.nextInt(5);
                         Thread.sleep(i);
                         ctx.setVar(e, i);
-                        switch (e){
+                        switch (e) {
                             case "A":
                                 ctx.setVar("a", 1);
                                 break;
@@ -36,14 +34,13 @@ public class Main {
                                 ctx.setVar("a", 1);
                                 break;
                         }
-                    } catch (InterruptedException ex) {
-
+                    } catch (InterruptedException ignored) {
                     }
                     return ctx;
                 }
         ));
 
-        ExecutionGraph graph = createGraph(new ArrayList<>() {{
+        ExecutionGraph graph = ExecutionGraph.createGraph(new ArrayList<>() {{
             add("A");
             add("B[A](beforeCheck([a] == 1))");
             add("C");

@@ -1,4 +1,4 @@
-package ink.windlively.tools.parallelprocessor;
+package ink.windlively.frame.parallelprocessor;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 
+/**
+ * 执行流程中的一些配置
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
