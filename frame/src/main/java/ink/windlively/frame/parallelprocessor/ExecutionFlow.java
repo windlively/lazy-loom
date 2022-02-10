@@ -44,7 +44,6 @@ public interface ExecutionFlow extends Function<ExecutionContext, ExecutionConte
      * @return
      */
     static ExecutionFlow buildFlow(@NonNull ExecutionGraph executionGraph, @NonNull FlowConfiguration flowConfiguration) {
-        SpelExpressionParser expressionParser = new SpelExpressionParser();
         return ctx -> {
             long startTime = System.currentTimeMillis();
             List<List<ExecutionNode>> sortedNodes = executionGraph.getSortedNodes();
