@@ -19,6 +19,7 @@
         <module>ex-spark-streaming</module>
         <module>data-mock</module>
         <module>frame</module>
+        <module>example-runner</module>
     </modules>
     <build>
         <plugins>

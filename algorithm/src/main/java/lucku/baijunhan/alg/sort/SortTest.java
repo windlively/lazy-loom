@@ -6,21 +6,21 @@ public class SortTest {
 
     public static void main(String[] args) {
         IntSort sort;
-        int[] nums = new int[]{11,22,13,21,5,9,1,16,5,8,3};
+        int[] nums = new int[]{5,2,3,1};
 
 //        sort = new QuickSort();
 //        sort.sort(nums);
 //        System.out.println(Arrays.toString(nums));
 //
-//        sort = new HeapSort();
-//        sort.sort(nums);
-//        System.out.println(Arrays.toString(nums));
-
-
-//        sort = new HeapSort();
-//        sort.sort(nums);
-        heapSort(nums);
+        sort = new HeapSort();
+        sort.sort(nums);
         System.out.println(Arrays.toString(nums));
+
+
+//        sort = new HeapSort();
+//        sort.sort(nums);
+//        heapSort(nums);
+//        System.out.println(Arrays.toString(nums));
     }
 
 
