@@ -16,7 +16,7 @@
         <module>common</module>
         <module>file-server</module>
         <module>scripts</module>
-        <module>ex-spark-streaming</module>
+<!--        <module>ex-spark-streaming</module>-->
         <module>data-mock</module>
         <module>frame</module>
         <module>example-runner</module>
@@ -27,8 +27,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>17</source>
+                    <target>17</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -54,6 +54,11 @@
                 <version>2.2.2.RELEASE</version>
                 <scope>import</scope>
                 <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.22</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
