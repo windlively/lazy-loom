@@ -5,8 +5,6 @@ import com.google.gson.GsonBuilder;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -470,7 +468,7 @@ public class GeneralTools {
         if (javaValue instanceof String)
             strVal = "'" + javaValue + "'";
         else if (javaValue instanceof Date)
-            strVal = "'" + new DateTime(javaValue).toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+            strVal = "'" + javaValue + "'";
         else
             strVal = javaValue == null ? "null" : javaValue.toString();
 

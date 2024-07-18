@@ -4,7 +4,6 @@ import ink.windlively.datamock.tools.DaoTools;
 import lombok.extern.slf4j.Slf4j;
 import ink.windlively.datamock.tools.RandomDataGenerator;
 import ink.windlively.datamock.tools.SQLGenerator;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -286,8 +285,8 @@ public class StockDataInsertService {
     }
 
     private Map<String, Object> createCustomerInitializationTransaction(int customerId, Map<String, Object> customerAccount) {
-        DateTime entryTime = DateTime.parse((String) customerAccount.get("entry_time"));
-        String transactionTime = entryTime.plusDays(RandomDataGenerator.getRandom().nextInt(5)).plusHours(RandomDataGenerator.getRandom().nextInt(24)).toString("yyyy-MM-dd");
+//        DateTime entryTime = DateTime.parse((String) customerAccount.get("entry_time"));
+//        String transactionTime = entryTime.plusDays(RandomDataGenerator.getRandom().nextInt(5)).plusHours(RandomDataGenerator.getRandom().nextInt(24)).toString("yyyy-MM-dd");
         boolean isOut = RandomDataGenerator.getRandom().nextBoolean();
         int borrow_loan = isOut ? 1 : 2;
         int level = (int) customerAccount.get("account_level");
@@ -295,7 +294,7 @@ public class StockDataInsertService {
         double transactionAmount = RandomDataGenerator.getRandom().nextDouble(100, 10000);
         Map<String, Object> map = new HashMap<>();
         map.put("customer_id", customerId);
-        map.put("transaction_time", transactionTime);
+//        map.put("transaction_time", transactionTime);
         map.put("comment", String.format((isOut ? "出账" : "入账") + "%.2f元", transactionAmount));
         map.put("balance", balance);
         map.put("transaction_amount", transactionAmount);
@@ -317,7 +316,7 @@ public class StockDataInsertService {
         Map<String, Object> map = new HashMap<>();
         map.put("customer_id", customerId);
         map.put("balance", balance);
-        map.put("l_date", DateTime.now().toString("yyyy-MM-dd"));
+//        map.put("l_date", DateTime.now().toString("yyyy-MM-dd"));
         return map;
     }
 

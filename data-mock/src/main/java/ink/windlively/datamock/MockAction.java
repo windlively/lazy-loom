@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import ink.windlively.datamock.tools.DaoTools;
 import ink.windlively.datamock.tools.RandomDataGenerator;
 import ink.windlively.datamock.tools.SQLGenerator;
-import org.joda.time.DateTime;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -155,13 +154,13 @@ public class MockAction {
         String term = (String) production.get("term");
         term = term.trim();
 
-        Date productionRealArriveDate;
+        Date productionRealArriveDate = null;
         int value = Integer.parseInt(term.substring(0, term.length() - 1));
-        if(term.endsWith("年")){
-            productionRealArriveDate = new DateTime(dealTime).plusYears(value).toDate();
-        } else {
-            productionRealArriveDate = new DateTime(dealTime).plusDays(value).toDate();
-        }
+//        if(term.endsWith("年")){
+//            productionRealArriveDate = new DateTime(dealTime).plusYears(value).toDate();
+//        } else {
+//            productionRealArriveDate = new DateTime(dealTime).plusDays(value).toDate();
+//        }
 
         Map<String, Object> map = new HashMap<>();
         map.put("seller_id", sellerId);

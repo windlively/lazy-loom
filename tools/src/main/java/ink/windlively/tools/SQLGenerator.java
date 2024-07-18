@@ -1,7 +1,6 @@
 package ink.windlively.tools;
 
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
+
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
@@ -128,7 +127,7 @@ public class SQLGenerator {
         if (javaValue instanceof String)
             strVal = "'" + javaValue + "'";
         else if (javaValue instanceof Date)
-            strVal = "'" + new DateTime(javaValue).toString(DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss")) + "'";
+            strVal = "'" + javaValue + "'";
         else if (javaValue instanceof LocalDateTime)
             strVal = "'" + ((LocalDateTime) javaValue).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "'";
         else if (javaValue instanceof LocalDate)
