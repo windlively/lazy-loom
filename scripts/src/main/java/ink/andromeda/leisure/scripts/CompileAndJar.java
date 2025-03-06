@@ -23,28 +23,28 @@ public class CompileAndJar {
     public static String packageName = "ink.windlively.common.udf";
 
     public static void main(String[] args) {
-        compileAndJar(Arrays.asList("\n" +
-                                    "public class SayHello {\n" +
-                                    "    " +
-                                    "public void sayHello() {\n" +
-                                    "        System.out.println(\"Hello World\");\n" +
-                                    "    " +
-                                    "}\n" +
-                                    "}", "\n" +
-                                         "public class SayHello2 {\n" +
-                                         "    " +
-                                         "public void sayHello() {\n" +
-                                         "        System.out.println(\"Hello World\");\n" +
-                                         "    " +
-                                         "}\n" +
-                                         "}",
-                "public class SayHello3 {\n" +
-                "    " +
-                "public void sayHello() {\n" +
-                "        System.out.println(\"Hello World\");\n" +
-                "    " +
-                "}\n" +
-                "}"));
+        compileAndJar(Arrays.asList("""
+                        public class SayHello {
+                            public void sayHello() {
+                                System.out.println("Hello World");
+                            }
+                        }
+                        """,
+
+                """
+                        public class SayHello2 {
+                            public void sayHello() {
+                                System.out.println("Hello World");
+                            }
+                        }
+                        """,
+                """
+                            public class SayHello3 {
+                                public void sayHello() {
+                                    System.out.println("Hello World");
+                                }
+                            }
+                        """));
     }
 
     public static Pattern FIND_CLASS_NAME_PATTERN = Pattern.compile("(?i)(?<=class)(\\s+?\\w+?\\s+?)(?=\\{)");

@@ -145,7 +145,7 @@ public class RandomDataGenerator {
     public static void main(String[] args) {
         long t0 = System.currentTimeMillis();
         for (int i = 0; i < 100000; i++) {
-            System.out.println(randomBankCard());
+            System.out.println(randomEmail());
         }
         System.out.println(System.currentTimeMillis() - t0);
         /*
