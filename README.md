@@ -1,4 +1,4 @@
-# leisure
+# lazy-loom
 ### 此项目用于提交临时的脚本代码或者Demo项目、小工具等
 ## file-server
 ### 构建Docker镜像
