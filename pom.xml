@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ink.windlively</groupId>
-    <artifactId>cymbidium</artifactId>
+    <artifactId>lazy-loom</artifactId>
     <packaging>pom</packaging>
     <version>uranus</version>
     <modules>
