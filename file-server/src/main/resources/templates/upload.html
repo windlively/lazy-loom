@@ -1,40 +1,469 @@
 <!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
-<header>
-  <title>文件上传</title>
+      xmlns:th="http://www.thymeleaf.org" lang="zh_CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>文件上传 - File Server</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
-</header>
-<body style="width: 100%;height: 100vh; ">
-<div class="row" style="width: 100%; height: 100%; display: flex; justify-content: center;align-items: center">
-  <form th:action="@{/one-file}" method="POST" enctype="multipart/form-data" class="col-lg-6 col-md-8 col-sm-10">
-    <div class="">
-      <label for="formFile" class="form-label">请选择文件:</label>
-      <input class="form-control" id="formFile" type="file" name="file" placeholder=""/>
-    </div>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --primary: #4f6ef7;
+      --primary-hover: #3b5de7;
+      --text-main: #2d3748;
+      --text-muted: #8492a6;
+      --border: #e8ecf1;
+      --green: #38a169;
+      --orange: #ed8936;
+      --red: #e5534b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .app-header { background: linear-gradient(135deg, #4f6ef7 0%, #6c5ce7 100%); color: #fff; padding: 28px 0 56px; }
+    .app-header .header-inner {
+      max-width: 760px; margin: 0 auto; padding: 0 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    }
+    .app-header .brand { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 700; letter-spacing: .5px; }
+    .app-header .back-link { color: rgba(255,255,255,.85); text-decoration: none; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; transition: color .15s; }
+    .app-header .back-link:hover { color: #fff; }
+    .main-wrap { max-width: 760px; margin: -36px auto 40px; padding: 0 16px; width: 100%; }
+    .panel { background: var(--card-bg); border-radius: 14px; box-shadow: 0 6px 24px rgba(45,62,80,.08); padding: 26px 28px; }
 
-    <div>
-      <label class="form-label">上传路径:</label>
-      <input class="form-control" type="text" name="path" aria-describedby="pathHelp"/>
-      <div id="pathHelp" class="form-text">
-        example: /my-file/photos<br>
-        <span style="color: red">文件名及路径名仅可包含英文、下划线及汉字！</span>
+    .drop-zone {
+      border: 2px dashed #c9d4e8; border-radius: 12px; padding: 34px 20px; text-align: center;
+      color: var(--text-muted); cursor: pointer; transition: all .18s; background: #fafbfe; margin-bottom: 20px;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--primary); background: #eef2ff; color: var(--primary); }
+    .drop-zone .dz-icon { margin-bottom: 10px; }
+    .drop-zone .dz-title { font-size: 15px; font-weight: 600; color: var(--text-main); }
+    .drop-zone .dz-sub { font-size: 13px; margin-top: 4px; }
+
+    .settings { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: flex-end; margin-bottom: 6px; }
+    .settings .field { flex: 1; min-width: 220px; }
+    .form-label { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+    .form-control, .form-check-input { border-color: var(--border); }
+    .form-control:focus, .form-check-input:focus { border-color: var(--primary); box-shadow: 0 0 0 .2rem rgba(79,110,247,.15); }
+    .form-text { font-size: 12.5px; }
+    .hint-danger { color: var(--red); }
+    .form-check { padding-top: 30px; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0 16px; }
+
+    .list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+    .list-title { font-size: 15px; font-weight: 700; }
+    .list-title .count { color: var(--text-muted); font-weight: 600; font-size: 13px; margin-left: 6px; }
+    .global-btns { display: flex; gap: 8px; }
+    .gbtn {
+      display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: #fff;
+      color: var(--text-main); font-size: 13px; font-weight: 600; padding: 6px 14px; border-radius: 8px;
+      cursor: pointer; transition: all .15s;
+    }
+    .gbtn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .gbtn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .upload-item {
+      display: flex; align-items: center; gap: 14px; padding: 13px 14px;
+      border: 1px solid var(--border); border-radius: 11px; margin-bottom: 10px; background: #fff; transition: border-color .15s;
+    }
+    .upload-item:hover { border-color: #c7d2fe; }
+    .ui-icon { flex-shrink: 0; display: inline-flex; color: #7c8db0; }
+    .ui-main { flex: 1; min-width: 0; }
+    .ui-line1 { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+    .ui-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+    .ui-size { font-size: 12px; color: var(--text-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ui-status { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .st-uploading { color: var(--primary); }
+    .st-paused { color: var(--orange); }
+    .st-done { color: var(--green); }
+    .st-error { color: var(--red); }
+    .ui-track { height: 7px; background: #edf1f7; border-radius: 4px; overflow: hidden; }
+    .ui-bar { height: 100%; width: 0; border-radius: 4px; background: linear-gradient(90deg, #4f6ef7, #6c5ce7); transition: width .15s; }
+    .ui-bar.bar-paused { background: var(--orange); }
+    .ui-bar.bar-done { background: var(--green); }
+    .ui-bar.bar-error { background: var(--red); }
+    .ui-line2 { margin-top: 5px; font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    .ui-actions { flex-shrink: 0; display: flex; gap: 8px; }
+    .ui-btn {
+      border: 1px solid var(--border); background: #fff; font-size: 12.5px; font-weight: 600;
+      padding: 5px 13px; border-radius: 8px; cursor: pointer; transition: all .15s; color: var(--text-main);
+    }
+    .ui-btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .ui-btn.primary:hover { background: var(--primary-hover); }
+    .ui-btn.ghost:hover { border-color: var(--red); color: var(--red); }
+
+    .list-empty { text-align: center; color: var(--text-muted); font-size: 13.5px; padding: 26px 0 12px; }
+    .app-footer { text-align: center; color: #a0aec0; font-size: 12px; padding: 0 16px 28px; margin-top: auto; }
+  </style>
+</head>
+<body>
+<div class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      文件上传
+    </div>
+    <a th:href="@{/files}" class="back-link">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      返回文件列表
+    </a>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <div class="panel">
+
+    <div class="drop-zone" id="dropZone">
+      <div class="dz-icon">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      </div>
+      <div class="dz-title">点击选择文件，或将文件拖拽到此处</div>
+      <div class="dz-sub">支持多文件同时上传，选择后自动开始</div>
+    </div>
+    <input class="form-control d-none" id="formFile" type="file" name="file" multiple/>
+
+    <div class="settings">
+      <div class="field">
+        <label class="form-label" for="pathInput">上传路径</label>
+        <input class="form-control" type="text" name="path" id="pathInput" placeholder="/my-file/photos"/>
+        <div class="form-text">
+          示例：/my-file/photos&nbsp;&nbsp;<span class="hint-danger">文件名及路径名仅可包含英文、下划线及汉字！</span>
+        </div>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="false" name="saveAsOriginalName" id="flexCheck"/>
+        <label class="form-check-label" for="flexCheck">不保留原始文件名</label>
       </div>
     </div>
 
-    <div class="form-check">
-      <input class="form-check-input" type="checkbox" value="false" name="saveAsOriginalName" id="flexCheck">
-      <label class="form-check-label" for="flexCheck">
-        不保留原始文件名
-      </label>
+    <hr class="divider"/>
+
+    <div class="list-header" id="listHeader" style="display:none;">
+      <div class="list-title">上传列表<span class="count" id="listCount"></span></div>
+      <div class="global-btns">
+        <button type="button" class="gbtn" id="btnPauseAll" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          全部暂停
+        </button>
+        <button type="button" class="gbtn" id="btnResumeAll" disabled>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          全部继续
+        </button>
+      </div>
     </div>
 
-    <div style="display: flex; flex-direction: row-reverse">
-      <button type="submit" class="btn btn-primary">submit</button>
-    </div>
+    <div id="uploadList"></div>
 
-  </form>
+    <div class="list-empty" id="listEmpty">尚未选择文件</div>
+
+  </div>
 </div>
+
+<div class="app-footer">File Server · Powered by Spring Boot</div>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
+  window.UPLOAD_URLS = {
+    chunk: /*[[@{/upload/chunk}]]*/ '/upload/chunk',
+    progress: /*[[@{/upload/progress}]]*/ '/upload/progress',
+    complete: /*[[@{/upload/complete}]]*/ '/upload/complete',
+    abort: /*[[@{/upload/abort}]]*/ '/upload/abort'
+  };
+  /*]]>*/
+</script>
+<script>
+  (function () {
+    'use strict';
+    var CHUNK_SIZE = 1024 * 1024; // 1MB 分片
+    var URLS = window.UPLOAD_URLS;
+    var tasks = [];
+
+    var FILE_ICON = '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>';
+
+    // ---------- 工具函数 ----------
+    function uuid() {
+      return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[x]/g, function () {
+        return (Math.random() * 16 | 0).toString(16);
+      });
+    }
+    function esc(s) {
+      var d = document.createElement('div');
+      d.appendChild(document.createTextNode(s));
+      return d.innerHTML;
+    }
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      if (bytes < 1073741824) return (bytes / 1048576).toFixed(2) + ' MB';
+      return (bytes / 1073741824).toFixed(2) + ' GB';
+    }
+    function getPath() { return document.getElementById('pathInput').value.trim(); }
+    function getSaveAsOriginalName() { return !document.getElementById('flexCheck').checked; }
+
+    // ---------- 渲染 ----------
+    function renderRow(task) {
+      var html =
+        '<div class="upload-item" id="task-' + task.id + '">' +
+          '<div class="ui-icon">' + FILE_ICON + '</div>' +
+          '<div class="ui-main">' +
+            '<div class="ui-line1">' +
+              '<span class="ui-name" title="' + esc(task.file.name) + '">' + esc(task.file.name) + '</span>' +
+              '<span class="ui-size">' + formatSize(task.file.size) + '</span>' +
+              '<span class="ui-status" data-role="status"></span>' +
+            '</div>' +
+            '<div class="ui-track"><div class="ui-bar" data-role="bar"></div></div>' +
+            '<div class="ui-line2"><span data-role="percent">0%</span></div>' +
+          '</div>' +
+          '<div class="ui-actions">' +
+            '<button type="button" class="ui-btn primary" data-role="toggle">暂停</button>' +
+            '<button type="button" class="ui-btn ghost" data-role="cancel">取消</button>' +
+          '</div>' +
+        '</div>';
+      document.getElementById('uploadList').insertAdjacentHTML('beforeend', html);
+      var el = document.getElementById('task-' + task.id);
+      task.el = el;
+      task.ui = {
+        bar: el.querySelector('[data-role="bar"]'),
+        percent: el.querySelector('[data-role="percent"]'),
+        status: el.querySelector('[data-role="status"]'),
+        toggle: el.querySelector('[data-role="toggle"]'),
+        cancel: el.querySelector('[data-role="cancel"]')
+      };
+      task.ui.toggle.addEventListener('click', function () { onToggle(task); });
+      task.ui.cancel.addEventListener('click', function () { cancelTask(task); });
+    }
+
+    function setProgress(task, bytes) {
+      var total = task.file.size;
+      var pct = total === 0 ? 100 : Math.min(100, Math.floor(bytes / total * 100));
+      task.ui.bar.style.width = pct + '%';
+      task.ui.percent.textContent = pct + '% (' + formatSize(Math.min(bytes, total)) + ' / ' + formatSize(total) + ')';
+    }
+
+    function updateRow(task) {
+      var map = {
+        uploading: ['上传中', 'st-uploading', '暂停', ''],
+        paused: ['已暂停', 'st-paused', '继续', 'bar-paused'],
+        completing: ['合并中…', 'st-uploading', '', ''],
+        done: ['已完成', 'st-done', '', 'bar-done'],
+        error: ['失败：' + (task.errorMsg || ''), 'st-error', '重试', 'bar-error']
+      };
+      var info = map[task.status] || ['', '', '', ''];
+      task.ui.status.textContent = info[0];
+      task.ui.status.className = 'ui-status ' + info[1];
+      task.ui.bar.className = 'ui-bar' + (info[3] ? ' ' + info[3] : '');
+      if (info[2] === '') {
+        task.ui.toggle.style.display = 'none';
+      } else {
+        task.ui.toggle.style.display = '';
+        task.ui.toggle.textContent = info[2];
+      }
+      task.ui.cancel.style.display = (task.status === 'done') ? 'none' : '';
+    }
+
+    function refreshGlobal() {
+      var hasUploading = tasks.some(function (t) { return t.status === 'uploading' || t.status === 'completing'; });
+      var hasPaused = tasks.some(function (t) { return t.status === 'paused' || t.status === 'error'; });
+      document.getElementById('btnPauseAll').disabled = !hasUploading;
+      document.getElementById('btnResumeAll').disabled = !hasPaused;
+      var done = tasks.filter(function (t) { return t.status === 'done'; }).length;
+      document.getElementById('listCount').textContent = tasks.length ? (' ' + done + ' / ' + tasks.length) : '';
+      document.getElementById('listEmpty').style.display = tasks.length ? 'none' : '';
+      document.getElementById('listHeader').style.display = tasks.length ? '' : 'none';
+    }
+
+    // ---------- 上传核心 ----------
+    function pumpChunk(task) {
+      if (task.status !== 'uploading') return;
+      if (task.uploadedBytes >= task.file.size) {
+        completeUpload(task);
+        return;
+      }
+      var start = task.uploadedBytes;
+      var end = Math.min(start + CHUNK_SIZE, task.file.size);
+      var blob = task.file.slice(start, end);
+      var fd = new FormData();
+      fd.append('fileId', task.id);
+      fd.append('offset', String(start));
+      fd.append('chunk', blob, task.file.name);
+      var xhr = new XMLHttpRequest();
+      task.xhr = xhr;
+      xhr.open('POST', URLS.chunk);
+      xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) setProgress(task, start + e.loaded);
+      };
+      xhr.onload = function () {
+        task.xhr = null;
+        if (task.status !== 'uploading') return;
+        if (xhr.status === 200) {
+          var resp = {};
+          try { resp = JSON.parse(xhr.responseText); } catch (e) {}
+          if (resp.success) {
+            task.uploadedBytes = resp.data;
+            setProgress(task, task.uploadedBytes);
+            pumpChunk(task);
+          } else {
+            failTask(task, resp.message || '上传失败');
+          }
+        } else {
+          failTask(task, '请求失败 (' + xhr.status + ')');
+        }
+      };
+      xhr.onerror = function () { task.xhr = null; if (task.status === 'uploading') failTask(task, '网络错误'); };
+      xhr.send(fd);
+    }
+
+    function completeUpload(task) {
+      task.status = 'completing';
+      updateRow(task);
+      var fd = new FormData();
+      fd.append('fileId', task.id);
+      fd.append('fileName', task.file.name);
+      fd.append('path', getPath());
+      fd.append('saveAsOriginalName', String(getSaveAsOriginalName()));
+      fd.append('totalSize', String(task.file.size));
+      var xhr = new XMLHttpRequest();
+      task.xhr = xhr;
+      xhr.open('POST', URLS.complete);
+      xhr.onload = function () {
+        task.xhr = null;
+        var resp = {};
+        try { resp = JSON.parse(xhr.responseText); } catch (e) {}
+        if (xhr.status === 200 && resp.success) {
+          task.status = 'done';
+          setProgress(task, task.file.size);
+        } else {
+          task.status = 'error';
+          task.errorMsg = resp.message || '合并失败';
+        }
+        updateRow(task);
+        refreshGlobal();
+      };
+      xhr.onerror = function () {
+        task.xhr = null;
+        task.status = 'error';
+        task.errorMsg = '网络错误';
+        updateRow(task);
+        refreshGlobal();
+      };
+      xhr.send(fd);
+    }
+
+    function failTask(task, msg) {
+      task.status = 'error';
+      task.errorMsg = msg;
+      updateRow(task);
+      refreshGlobal();
+    }
+
+    // ---------- 单个任务控制 ----------
+    function onToggle(task) {
+      if (task.status === 'uploading') pauseTask(task);
+      else if (task.status === 'paused' || task.status === 'error') resumeTask(task);
+    }
+
+    function pauseTask(task) {
+      if (task.status !== 'uploading') return;
+      task.status = 'paused';
+      if (task.xhr) { try { task.xhr.abort(); } catch (e) {} task.xhr = null; }
+      updateRow(task);
+      refreshGlobal();
+    }
+
+    function resumeTask(task) {
+      if (task.status !== 'paused' && task.status !== 'error') return;
+      task.status = 'uploading';
+      task.errorMsg = null;
+      updateRow(task);
+      refreshGlobal();
+      // 先向服务端确认已上传字节数，再从断点继续
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', URLS.progress + '?fileId=' + encodeURIComponent(task.id));
+      xhr.onload = function () {
+        if (task.status !== 'uploading') return;
+        if (xhr.status === 200) {
+          var resp = {};
+          try { resp = JSON.parse(xhr.responseText); } catch (e) {}
+          if (resp.success) task.uploadedBytes = resp.data || 0;
+        }
+        setProgress(task, task.uploadedBytes);
+        pumpChunk(task);
+      };
+      xhr.onerror = function () { if (task.status === 'uploading') pumpChunk(task); };
+      xhr.send();
+    }
+
+    function cancelTask(task) {
+      if (task.xhr) { try { task.xhr.abort(); } catch (e) {} task.xhr = null; }
+      task.status = 'cancelled';
+      // 通知服务端清理临时分片
+      try {
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', URLS.abort);
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.send('fileId=' + encodeURIComponent(task.id));
+      } catch (e) {}
+      if (task.el && task.el.parentNode) task.el.parentNode.removeChild(task.el);
+      var idx = tasks.indexOf(task);
+      if (idx !== -1) tasks.splice(idx, 1);
+      refreshGlobal();
+    }
+
+    // ---------- 全局控制 ----------
+    document.getElementById('btnPauseAll').addEventListener('click', function () {
+      tasks.slice().forEach(function (t) { if (t.status === 'uploading') pauseTask(t); });
+    });
+    document.getElementById('btnResumeAll').addEventListener('click', function () {
+      tasks.slice().forEach(function (t) { if (t.status === 'paused' || t.status === 'error') resumeTask(t); });
+    });
+
+    // ---------- 文件选择 / 拖拽 ----------
+    function addFiles(fileList) {
+      if (!fileList || fileList.length === 0) return;
+      for (var i = 0; i < fileList.length; i++) {
+        var task = {
+          id: uuid(),
+          file: fileList[i],
+          uploadedBytes: 0,
+          status: 'uploading',
+          xhr: null,
+          errorMsg: null
+        };
+        tasks.push(task);
+        renderRow(task);
+        updateRow(task);
+        setProgress(task, 0);
+        pumpChunk(task);
+      }
+      refreshGlobal();
+    }
+
+    var dropZone = document.getElementById('dropZone');
+    var fileInput = document.getElementById('formFile');
+    dropZone.addEventListener('click', function () { fileInput.click(); });
+    fileInput.addEventListener('change', function () { addFiles(fileInput.files); fileInput.value = ''; });
+    ['dragenter', 'dragover'].forEach(function (evt) {
+      dropZone.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(function (evt) {
+      dropZone.addEventListener(evt, function (e) { e.preventDefault(); e.stopPropagation(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+    });
+  })();
+</script>
 </body>
 </html>

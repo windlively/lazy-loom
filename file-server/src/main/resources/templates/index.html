@@ -1,61 +1,455 @@
 <!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-4.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org" lang="zh_CN">
-<header>
-  <title>index</title>
-  <link th:href="@{/assets/css/animate.min.css}" rel="stylesheet">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="'File Server - ' + ${index}">File Server</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
   <style>
-    table {
-      border-spacing: 30px 0;
+    :root {
+      --bg: #f5f7fa;
+      --card-bg: #ffffff;
+      --primary: #4f6ef7;
+      --primary-hover: #3b5de7;
+      --text-main: #2d3748;
+      --text-muted: #8492a6;
+      --border: #e8ecf1;
+      --row-hover: #f8fafc;
+      --folder-color: #f6b93b;
+      --danger: #e5534b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--text-main);
+      margin: 0;
+      min-height: 100vh;
+    }
+    .app-header {
+      background: linear-gradient(135deg, #4f6ef7 0%, #6c5ce7 100%);
+      color: #fff;
+      padding: 28px 0 56px;
+    }
+    .app-header .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .app-header .brand svg { flex-shrink: 0; }
+    .main-wrap { max-width: 960px; margin: -36px auto 48px; padding: 0 16px; }
+    .panel {
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(45, 62, 80, .08);
+      overflow: hidden;
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+    .toolbar-nav { display: flex; align-items: center; gap: 12px; min-width: 0; flex-wrap: wrap; }
+    .btn-up {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-muted);
+      background: #eef1f6;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 13px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .btn-up:hover { background: #e2e8f2; color: var(--primary); }
+    .breadcrumb-path {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 14px;
+      margin: 0;
+    }
+    .breadcrumb-path .crumb {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 3px 8px;
+      border-radius: 6px;
+      transition: all .15s;
+    }
+    .breadcrumb-path .crumb:hover { background: #eef2ff; color: var(--primary); }
+    .breadcrumb-path .crumb.current { color: var(--text-main); font-weight: 600; pointer-events: none; }
+    .breadcrumb-path .sep { color: #c3ccd6; }
+    .btn-upload {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--primary);
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 9px;
+      text-decoration: none;
+      transition: all .18s;
+      box-shadow: 0 3px 10px rgba(79, 110, 247, .3);
+    }
+    .btn-upload:hover { background: var(--primary-hover); color: #fff; transform: translateY(-1px); box-shadow: 0 5px 14px rgba(79, 110, 247, .4); }
+    .alert-wrap { padding: 14px 24px 0; }
+    .file-table { width: 100%; border-collapse: collapse; }
+    .file-table thead th {
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-muted);
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+      white-space: nowrap;
+    }
+    .file-table tbody td {
+      padding: 12px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .file-table tbody tr { transition: background .12s; }
+    .file-table tbody tr:hover { background: var(--row-hover); }
+    .file-table tbody tr:last-child td { border-bottom: none; }
+    .fname { display: flex; align-items: center; gap: 10px; }
+    .fname a {
+      color: var(--text-main);
+      text-decoration: none;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 420px;
+    }
+    .fname a:hover { color: var(--primary); }
+    .fname .icon { flex-shrink: 0; display: inline-flex; }
+    .fname .icon svg { display: block; }
+    .meta { color: var(--text-muted); font-size: 13px; }
+    .size-badge {
+      display: inline-block;
+      min-width: 64px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+    .btn-del {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--danger);
+      background: transparent;
+      border: 1px solid transparent;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 4px 12px;
+      border-radius: 7px;
+      text-decoration: none;
+      transition: all .15s;
+      opacity: .75;
+    }
+    .btn-del:hover { background: #fdecea; border-color: #f5c6c3; color: var(--danger); opacity: 1; }
+    .empty-state { text-align: center; padding: 64px 24px; color: var(--text-muted); }
+    .empty-state svg { margin-bottom: 14px; opacity: .5; }
+    .app-footer { text-align: center; color: #a0aec0; font-size: 12px; padding: 0 16px 28px; }
+
+    /* ===== 工具栏操作区 & 视图切换 ===== */
+    .toolbar-actions { display: flex; align-items: center; gap: 12px; }
+    .view-toggle {
+      display: inline-flex;
+      background: #eef1f6;
+      border-radius: 9px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .vt-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 30px;
+      border: none;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .vt-btn:hover { color: var(--primary); }
+    .vt-btn.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 1px 4px rgba(45, 62, 80, .15);
+    }
+
+    /* ===== 网格视图 ===== */
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+    .grid-card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 14px 16px;
+      text-align: center;
+      background: #fff;
+      transition: all .18s;
+    }
+    .grid-card:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 6px 18px rgba(79, 110, 247, .12);
+      transform: translateY(-2px);
+    }
+    .grid-card-link { display: block; text-decoration: none; color: inherit; }
+    .grid-icon { display: inline-flex; margin-bottom: 12px; }
+    .grid-icon svg { display: block; }
+    .grid-name {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .grid-card:hover .grid-name { color: var(--primary); }
+    .grid-meta {
+      display: block;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .grid-del {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      color: var(--danger);
+      background: transparent;
+      text-decoration: none;
+      opacity: 0;
+      transition: all .15s;
+    }
+    .grid-card:hover .grid-del { opacity: 1; }
+    .grid-del:hover { background: #fdecea; }
+
+    /* ===== 视图模式切换（默认列表，mode-grid 时显示网格） ===== */
+    #grid-view { display: none; }
+    .panel.mode-grid #list-view { display: none; }
+    .panel.mode-grid #grid-view { display: grid; }
+
+    @media (max-width: 640px) {
+      .file-table thead th:nth-child(2), .file-table tbody td:nth-child(2) { display: none; }
+      .fname a { max-width: 180px; }
+      .file-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; padding: 16px; }
     }
   </style>
-</header>
+</head>
 <body>
-<div style="margin-left: 20px;font-size: 14px">
-  <h2 th:text="'index of: &nbsp;' + ${index}"></h2>
-  <div style="padding: 5px 0">
-    <a th:href="@{/upload-page}" class="btn btn-light btn-sm">上传文件</a>
+<div class="app-header">
+  <div class="main-wrap" style="margin:0 auto;">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      File Server
+    </div>
   </div>
-  <span style="font-size: 14px;color: red" th:if="${not #strings.isEmpty(error)}" th:text="${error}"></span>
-  <span style="font-size: 14px" th:if="${not #strings.isEmpty(message)}" th:text="${message}"></span>
-  <table>
-    <thead>
-    <tr style="text-align: left">
-      <th>name</th>
-      <th>last modified</th>
-      <th>spaces</th>
-      <th>op</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="file : ${childs}" class="animated flipInX">
-      <td th:if="${not file.dir}">
-        &bull;&nbsp;&nbsp;<a th:href="${file.reqPath}" target="_blank" th:text="${file.name}"></a>
-      </td>
-      <td th:if="${file.dir}">
-        +&nbsp;&nbsp;<a  th:href="${file.reqPath}" th:text="${file.name}"></a>
-      </td>
-      <td>
-        <span th:text="${#dates.format(file.lastModified)}"></span>
-      </td>
-      <td>
-        <span th:text="${#numbers.formatDecimal(file.spaces/1024.0d/1024.0d, 1, 2)} + 'Mb'"></span>
-      </td>
-      <td th:if="${file.getName() != '根目录' and file.getName() != '上一级'}">
-        <a th:href="${'/file-server/delete' + #strings.substring(file.reqPath, #strings.length('/file-server/files'))}">delete</a>
-      </td>
-    </tr>
-    </tbody>
-  </table>
 </div>
+
+<div class="main-wrap">
+  <div class="panel">
+    <div class="toolbar">
+      <div class="toolbar-nav">
+        <a th:if="${index != '/'}" th:href="${parentPath}" class="btn-up" title="返回上一级目录">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          上一级
+        </a>
+        <nav class="breadcrumb-path" id="breadcrumb"></nav>
+      </div>
+      <div class="toolbar-actions">
+        <div class="view-toggle" role="group" aria-label="视图切换">
+          <button type="button" id="btn-list" class="vt-btn active" title="列表视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button type="button" id="btn-grid" class="vt-btn" title="网格视图">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+        <a th:href="@{/upload-page}" class="btn-upload">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          上传文件
+        </a>
+      </div>
+    </div>
+
+    <div class="alert-wrap" th:if="${not #strings.isEmpty(error)}">
+      <div class="alert alert-danger py-2 mb-0" th:text="${error}"></div>
+    </div>
+    <div class="alert-wrap" th:if="${not #strings.isEmpty(message)}">
+      <div class="alert alert-success py-2 mb-0" th:text="${message}"></div>
+    </div>
+
+    <div id="list-view">
+      <table class="file-table">
+        <thead>
+        <tr>
+          <th>名称</th>
+          <th>修改时间</th>
+          <th style="text-align: right">大小</th>
+          <th style="text-align: right">操作</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="file : ${childs}">
+          <td>
+            <div class="fname">
+              <span class="icon" th:if="${file.dir}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#f6b93b" stroke="#e8a520" stroke-width="1"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </span>
+              <span class="icon" th:if="${not file.dir}">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7c8db0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </span>
+              <a th:href="${file.reqPath}" th:target="${file.dir ? '_self' : '_blank'}" th:text="${file.name}"></a>
+            </div>
+          </td>
+          <td class="meta">
+            <span th:if="${file.lastModified != null}" th:text="${#dates.format(file.lastModified, 'yyyy-MM-dd HH:mm')}"></span>
+            <span th:if="${file.lastModified == null}">-</span>
+          </td>
+          <td style="text-align: right">
+            <span class="size-badge" th:if="${not file.dir}" th:text="${#numbers.formatDecimal(file.spaces/1024.0d/1024.0d, 1, 2)} + ' MB'"></span>
+            <span class="size-badge" th:if="${file.dir}">-</span>
+          </td>
+          <td style="text-align: right">
+            <a class="btn-del" th:href="${'/file-server/delete' + #strings.substring(file.reqPath, #strings.length('/file-server/files'))}"
+               onclick="return confirm('确定要删除该项吗？此操作不可恢复！');">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              删除
+            </a>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="file-grid" id="grid-view">
+      <div th:each="file : ${childs}" class="grid-card">
+        <a class="grid-card-link" th:href="${file.reqPath}" th:target="${file.dir ? '_self' : '_blank'}">
+          <span class="grid-icon" th:if="${file.dir}">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="#f6b93b" stroke="#e8a520" stroke-width="1"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <span class="grid-icon" th:if="${not file.dir}">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#7c8db0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </span>
+          <span class="grid-name" th:text="${file.name}"></span>
+          <span class="grid-meta" th:if="${not file.dir}" th:text="${#numbers.formatDecimal(file.spaces/1024.0d/1024.0d, 1, 2)} + ' MB'"></span>
+          <span class="grid-meta" th:if="${file.dir}">文件夹</span>
+        </a>
+        <a class="grid-del" th:href="${'/file-server/delete' + #strings.substring(file.reqPath, #strings.length('/file-server/files'))}"
+           title="删除"
+           onclick="return confirm('确定要删除该项吗？此操作不可恢复！');">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <div class="empty-state" th:if="${#lists.isEmpty(childs)}">
+      <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#a0aec0" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      <div>当前目录为空，点击「上传文件」开始上传吧</div>
+    </div>
+  </div>
+</div>
+
+<div class="app-footer">File Server · Powered by Spring Boot</div>
+
 <script th:inline="javascript">
-  window.onload = () => {
-      if(![[${index}]]){
-          window.location = [[@{/files}]]
+  /*<![CDATA[*/
+  (function () {
+    var currentPath = /*[[${index}]]*/ '/';
+    var filesPrefix = /*[[@{/files}]]*/ '/files';
+    if (!currentPath) {
+      window.location = filesPrefix;
+      return;
+    }
+    var nav = document.getElementById('breadcrumb');
+    var segments = currentPath.split('/').filter(function (s) { return s !== ''; });
+    var acc = '';
+    var html = '';
+    html += '<a class="crumb" href="' + filesPrefix + '/">';
+    html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> 根目录</a>';
+    if (segments.length === 0) {
+      nav.innerHTML = html.replace('class="crumb"', 'class="crumb current"');
+      return;
+    }
+    html += '<span class="sep">/</span>';
+    for (var i = 0; i < segments.length; i++) {
+      acc += '/' + segments[i];
+      if (i === segments.length - 1) {
+        html += '<span class="crumb current">' + escapeHtml(segments[i]) + '</span>';
+      } else {
+        html += '<a class="crumb" href="' + filesPrefix + acc + '">' + escapeHtml(segments[i]) + '</a><span class="sep">/</span>';
       }
-  }
+    }
+    nav.innerHTML = html;
+    function escapeHtml(s) {
+      var d = document.createElement('div');
+      d.appendChild(document.createTextNode(s));
+      return d.innerHTML;
+    }
+  })();
+
+  /* ===== 列表 / 网格 视图切换（localStorage 记忆选择） ===== */
+  (function () {
+    var panel = document.querySelector('.panel');
+    var btnList = document.getElementById('btn-list');
+    var btnGrid = document.getElementById('btn-grid');
+    var STORE_KEY = 'fs-view-mode';
+
+    function setView(mode) {
+      var isGrid = (mode === 'grid');
+      panel.classList.toggle('mode-grid', isGrid);
+      btnList.classList.toggle('active', !isGrid);
+      btnGrid.classList.toggle('active', isGrid);
+      try { localStorage.setItem(STORE_KEY, isGrid ? 'grid' : 'list'); } catch (e) {}
+    }
+
+    btnList.addEventListener('click', function () { setView('list'); });
+    btnGrid.addEventListener('click', function () { setView('grid'); });
+
+    var saved = 'list';
+    try { saved = localStorage.getItem(STORE_KEY) || 'list'; } catch (e) {}
+    setView(saved === 'grid' ? 'grid' : 'list');
+  })();
+  /*]]>*/
 </script>
 </body>
 </html>

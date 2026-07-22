@@ -16,7 +16,7 @@
         <module>common</module>
         <module>file-server</module>
         <module>scripts</module>
-<!--        <module>ex-spark-streaming</module>-->
+        <module>ex-spark-streaming</module>
         <module>data-mock</module>
         <module>frame</module>
         <module>example-runner</module>

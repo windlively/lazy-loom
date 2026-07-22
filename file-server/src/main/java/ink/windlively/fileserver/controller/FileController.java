@@ -7,6 +7,7 @@ import ink.windlively.fileserver.service.FileService;
 import ink.windlively.fileserver.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,9 +45,67 @@ public class FileController {
 
     @PostMapping("/one-file")
     public HttpResult<String> fileUpload(@RequestParam(name = "file") MultipartFile multipartFile,
-                                         @RequestParam String path,
-                                         @RequestParam(required = false, defaultValue = "true") boolean saveAsOriginalName) {
+                                         @RequestParam(name = "path") String path,
+                                         @RequestParam(name = "saveAsOriginalName", required = false, defaultValue = "true") boolean saveAsOriginalName) {
         return fileService.saveOneFile(multipartFile, path, saveAsOriginalName);
+    }
+
+    /**
+     * 分片上传：接收某个文件的单个分片并写入指定偏移位置，返回已接收的总字节数
+     */
+    @PostMapping("/upload/chunk")
+    public HttpResult<Long> uploadChunk(@RequestParam(name = "fileId") String fileId,
+                                        @RequestParam(name = "offset") long offset,
+                                        @RequestParam(name = "chunk") MultipartFile chunk) {
+        try {
+            long received = fileService.saveChunk(fileId, offset, chunk);
+            return HttpResult.SUCCESS(received);
+        } catch (Exception e) {
+            log.error("save chunk error, fileId: {}", fileId, e);
+            return HttpResult.FAILED(e.getMessage());
+        }
+    }
+
+    /**
+     * 查询某个上传任务已接收的字节数（用于断点续传）
+     */
+    @GetMapping("/upload/progress")
+    public HttpResult<Long> uploadProgress(@RequestParam(name = "fileId") String fileId) {
+        try {
+            return HttpResult.SUCCESS(fileService.getUploadedSize(fileId));
+        } catch (Exception e) {
+            return HttpResult.FAILED(e.getMessage());
+        }
+    }
+
+    /**
+     * 完成上传：所有分片上传完毕后调用，合并为最终文件
+     */
+    @PostMapping("/upload/complete")
+    public HttpResult<String> uploadComplete(@RequestParam(name = "fileId") String fileId,
+                                             @RequestParam(name = "fileName") String fileName,
+                                             @RequestParam(name = "path", required = false) String path,
+                                             @RequestParam(name = "saveAsOriginalName", required = false, defaultValue = "true") boolean saveAsOriginalName,
+                                             @RequestParam(name = "totalSize") long totalSize) {
+        try {
+            return fileService.completeUpload(fileId, fileName, path, saveAsOriginalName, totalSize);
+        } catch (Exception e) {
+            log.error("complete upload error, fileId: {}", fileId, e);
+            return HttpResult.FAILED(e.getMessage());
+        }
+    }
+
+    /**
+     * 取消上传，清理已上传的临时分片
+     */
+    @PostMapping("/upload/abort")
+    public HttpResult<String> uploadAbort(@RequestParam(name = "fileId") String fileId) {
+        try {
+            fileService.abortUpload(fileId);
+            return HttpResult.SUCCESS("已取消");
+        } catch (Exception e) {
+            return HttpResult.FAILED(e.getMessage());
+        }
     }
 
     @RequestMapping("/explorer/**")
@@ -72,14 +131,13 @@ public class FileController {
             return mv;
         }
         if (file.isDirectory()) {
-            // 父目录
+            // 父目录路径（供前端“上一级”导航使用）
             String parentDir = reqFilePath.substring(0, reqFilePath.lastIndexOf('/'));
             List<FileModel> childs = new ArrayList<>();
             mv.setViewName("index");
             mv.addObject("childs", childs);
             mv.addObject("index", reqFilePath);
-            childs.add(new FileModel(REQ_PREFIX + "/", "根目录", true, null, 0));
-            childs.add(new FileModel(Utils.makePath(REQ_PREFIX, parentDir), "上一级", true, null, 0));
+            mv.addObject("parentPath", Utils.makePath(REQ_PREFIX, parentDir));
             File[] files = file.listFiles();
             if (files == null || files.length == 0) {
                 return mv;

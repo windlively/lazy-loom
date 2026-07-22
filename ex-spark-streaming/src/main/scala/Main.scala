@@ -1,17 +1,8 @@
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.codec.StringDecoder
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.internal.Logging
-import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, LocationStrategies}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.codehaus.jackson.`type`._
-
-import java.lang.String
-import java.util.HashMap
-import scala.collection.mutable
-import scala.util.parsing.json.JSON
 
 
 object Main extends Logging {
@@ -49,14 +40,13 @@ object Main extends Logging {
       "enable.auto.commit" -> (false: java.lang.Boolean)
     )
 
-    val kafkaStream = KafkaUtils.createDirectStream(ssc = ssc, LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Subscribe(Seq("spider_weibo"), kafkaParams))
+    val kafkaStream = KafkaUtils.createDirectStream[String, String](ssc, LocationStrategies.PreferConsistent,
+      ConsumerStrategies.Subscribe[String, String](Seq("spider_weibo"), kafkaParams))
     val objectMapper = new ObjectMapper();
 
     kafkaStream.foreachRDD(rdd => {
       if (!rdd.isEmpty()) {
-        val str = rdd.map(s => JSON.parseFull(s.value).get.asInstanceOf[Map[String, Any]])
-          .map(_.getOrElse("content", "").toString)
+        val str = rdd.map(s => objectMapper.readTree(s.value).path("content").asText(""))
           .reduce(_ + "\n" + _)
         logInfo(s"$str")
       }
