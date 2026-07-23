@@ -1,8 +1,8 @@
 logging:
   file:
-    path: /data/logs/file-server
+    path: /tmp/logs/file-server
 file-server:
-  workspace: /data/file-server
+  workspace: /tmp/file-server
   host: http://localhost:8080
 server:
   servlet:
