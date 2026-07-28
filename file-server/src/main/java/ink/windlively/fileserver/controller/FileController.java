@@ -5,15 +5,15 @@ import ink.windlively.fileserver.model.FileServerConfig;
 import ink.windlively.fileserver.model.HttpResult;
 import ink.windlively.fileserver.service.FileService;
 import ink.windlively.fileserver.utils.Utils;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.util.UriUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +33,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    private final static String REQ_PREFIX = "/file-server/files";
+    private final FileServerConfig fileServerConfig;
 
     public FileController(FileService fileService,
                           FileServerConfig fileServerConfig) {
@@ -41,7 +41,7 @@ public class FileController {
         this.fileServerConfig = fileServerConfig;
     }
 
-    private final FileServerConfig fileServerConfig;
+    // ==================== 文件上传 API ====================
 
     @PostMapping("/one-file")
     public HttpResult<String> fileUpload(@RequestParam(name = "file") MultipartFile multipartFile,
@@ -108,111 +108,92 @@ public class FileController {
         }
     }
 
-    @RequestMapping("/explorer/**")
-    public Object index(HttpServletRequest request) {
-        return fileExplorer("explorer", request);
-    }
+    // ==================== 文件浏览 API ====================
 
-    @RequestMapping(value = "/files/**")
-    public Object files(HttpServletRequest request) {
-        return fileExplorer("files", request);
-    }
-
-    private Object fileExplorer(String repPathPrefix, HttpServletRequest request){
-        String reqFilePath = request.getServletPath().substring(("/" + repPathPrefix).length());
-        if (reqFilePath.equals(""))
-            reqFilePath = "/";
-        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), reqFilePath);
+    /**
+     * 列出指定目录下的文件和子目录
+     */
+    @GetMapping("/api/list")
+    public HttpResult<List<FileModel>> listFiles(@RequestParam(name = "path", required = false, defaultValue = "/") String path) {
+        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), path);
         File file = new File(filePath);
-        ModelAndView mv = new ModelAndView();
         if (!file.exists()) {
-            mv.setViewName("error");
-            mv.addObject("message", "file or dir: " + reqFilePath + " not exist!");
-            return mv;
+            return HttpResult.FAILED("目录不存在: " + path);
         }
-        if (file.isDirectory()) {
-            // 父目录路径（供前端“上一级”导航使用）
-            String parentDir = reqFilePath.substring(0, reqFilePath.lastIndexOf('/'));
-            List<FileModel> childs = new ArrayList<>();
-            mv.setViewName("index");
-            mv.addObject("childs", childs);
-            mv.addObject("index", reqFilePath);
-            mv.addObject("parentPath", Utils.makePath(REQ_PREFIX, parentDir));
-            File[] files = file.listFiles();
-            if (files == null || files.length == 0) {
-                return mv;
-            }
+        if (!file.isDirectory()) {
+            return HttpResult.FAILED("路径不是目录: " + path);
+        }
+        List<FileModel> childs = new ArrayList<>();
+        File[] files = file.listFiles();
+        if (files != null) {
             for (File f : files) {
-                FileModel fm = new FileModel(Utils.makePath(REQ_PREFIX, reqFilePath, f.getName()),
+                FileModel fm = new FileModel(
+                        Utils.makePath(path, f.getName()),
                         f.getName(),
                         f.isDirectory(),
                         new Date(f.lastModified()),
                         f.length());
                 childs.add(fm);
             }
-        } else {
-//            URLEncoder.encode("/download" + reqPath, StandardCharsets.UTF_8);
-            mv.setViewName("redirect:/download" + new String(reqFilePath.getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1));
-//            try (
-//                InputStream inputStream = new BufferedInputStream(new FileInputStream(file));
-//            ){
-//                HttpHeaders headers = new HttpHeaders();
-//                String fileName = new String(file.getName().getBytes(StandardCharsets.UTF_8), StandardCharsets.ISO_8859_1);
-////                headers.setContentDispositionFormData("attachment", fileName);
-////                headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-//                headers.setContentType(MediaType.ALL);
-//                return new ResponseEntity<>(inputStream.readAllBytes(),
-//                        headers, HttpStatus.CREATED);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-
         }
-        return mv;
+        return HttpResult.SUCCESS(childs);
     }
 
-    @RequestMapping("/delete/**")
-    public Object delete(HttpServletRequest request) throws IOException {
-        ModelAndView mv = new ModelAndView();
-        String reqPath = request.getServletPath().substring("/delete".length());
-        if (reqPath.equals(""))
-            reqPath = "/";
-        if (reqPath.equals("/")) {
-            mv.addObject("error", "root dir could not delete!");
-            return mv;
+    /**
+     * 删除文件或目录
+     */
+    @DeleteMapping("/api/delete")
+    public HttpResult<String> delete(@RequestParam(name = "path") String path) {
+        if (path == null || path.equals("/") || path.isEmpty()) {
+            return HttpResult.FAILED("根目录不可删除");
         }
-        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), reqPath);
+        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), path);
         File file = new File(filePath);
-        if (file.isDirectory()) {
-
-            Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
-
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.delete(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
+        if (!file.exists()) {
+            return HttpResult.FAILED("文件不存在: " + path);
         }
-        if (file.delete()) {
+        try {
+            if (file.isDirectory()) {
+                Files.walkFileTree(file.toPath(), new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path f, BasicFileAttributes attributes) throws IOException {
+                        Files.delete(f);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } else {
+                Files.delete(file.toPath());
+            }
             log.info("delete file: {}", filePath);
-            mv.addObject("message", "delete file: " + reqPath + " success");
-        } else {
-            mv.addObject("error", "file: " + reqPath + " delete failed!");
+            return HttpResult.SUCCESS("删除成功: " + path);
+        } catch (IOException e) {
+            log.error("delete failed: {}", filePath, e);
+            return HttpResult.FAILED("删除失败: " + e.getMessage());
         }
-        String parentDir = reqPath.substring(0, reqPath.lastIndexOf('/'));
-        mv.setViewName("redirect:" + new String(Utils.makePath("/files", parentDir).getBytes(StandardCharsets.UTF_8)
-                , StandardCharsets.ISO_8859_1));
-        return mv;
     }
 
-    @RequestMapping("/upload-page")
-    public ModelAndView upload() {
-        return new ModelAndView("upload");
+    /**
+     * 文件下载
+     */
+    @GetMapping("/api/download")
+    public ResponseEntity<Resource> download(@RequestParam(name = "path") String path) {
+        String filePath = Utils.makePath(fileServerConfig.getWorkspace(), path);
+        File file = new File(filePath);
+        if (!file.exists() || file.isDirectory()) {
+            return ResponseEntity.notFound().build();
+        }
+        Resource resource = new FileSystemResource(file);
+        String encodedName = UriUtils.encode(file.getName(), StandardCharsets.UTF_8).replace("+", "%20");
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename*=UTF-8''" + encodedName)
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(file.length())
+                .body(resource);
     }
 }

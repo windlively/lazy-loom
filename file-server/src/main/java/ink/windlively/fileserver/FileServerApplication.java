@@ -42,7 +42,5 @@ public class FileServerApplication implements WebMvcConfigurer {
         log.info("workspace is: {}", workspace);
         registry.addResourceHandler("/download/**")
                 .addResourceLocations("file:///" + (workspace.endsWith("/") ? workspace : workspace + "/"));
-        // 静态资源(thymeleaf)文件
-        registry.addResourceHandler("/assets/**").addResourceLocations("classpath:/assets/");
     }
 }
