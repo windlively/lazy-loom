@@ -14,7 +14,6 @@
         <module>ex-spring-boot</module>
         <module>tools</module>
         <module>common</module>
-        <module>file-server</module>
         <module>scripts</module>
         <module>ex-spark-streaming</module>
         <module>data-mock</module>
